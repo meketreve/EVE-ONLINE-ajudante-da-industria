@@ -3,6 +3,7 @@ Industry calculation page — /industry
 Calculate production cost, profit and BOM for EVE items.
 """
 
+import asyncio
 import json
 import logging
 from datetime import datetime
@@ -275,6 +276,7 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
 
         async def do_calculate(force_refresh: bool = False):
             result_container.clear()
+            await asyncio.sleep(0)  # yield: deixa o drawer sincronizar via JS
 
             # Coleta valores do formulário
             raw_item = (item_input.value or "").strip()
@@ -418,10 +420,11 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                                         type="positive",
                                         timeout=4000,
                                     )
-                                    await do_calculate(force_refresh=False)
                                 except Exception as _exc:
                                     logger.error("Background price refresh error: %s", _exc)
                                     ui.notify(f"Erro ao atualizar preços: {_exc}", type="negative")
+                                finally:
+                                    await do_calculate(force_refresh=False)
 
                             _asyncio.create_task(_bg_region_refresh())
                             ui.notify(
@@ -430,10 +433,17 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                                 timeout=6000,
                             )
                         else:
-                            await refresh_prices_for_types(
-                                mat_ids + [item.type_id], src_type, market_id, price_src, db,
-                                token=char_token,
-                            )
+                            try:
+                                await refresh_prices_for_types(
+                                    mat_ids + [item.type_id], src_type, market_id, price_src, db,
+                                    token=char_token,
+                                )
+                            except Exception as _refresh_exc:
+                                logger.warning("Falha ao atualizar preços da estrutura: %s", _refresh_exc)
+                                ui.notify(
+                                    f"Aviso: falha ao atualizar preços — usando cache atual.",
+                                    type="warning",
+                                )
 
                     mat_prices, mat_age = await get_prices_cache_only(
                         mat_ids, src_type, market_id, price_src, db
@@ -542,6 +552,10 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                 age_str = "sem dados"
 
             result_container.clear()
+            # Yield para que requests JS pendentes do drawer possam concluir
+            # antes de iniciarmos o render pesado (evita TimeoutError do left_drawer).
+            await asyncio.sleep(0)
+
             with result_container:
                 from app.ui.components.cost_breakdown import render_cost_breakdown
                 render_cost_breakdown(
@@ -562,16 +576,25 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                 if is_recursive:
                     from app.ui.components.bom_tree import render_bom_tree
 
+                    # Referências lazy para o indicador de alterações pendentes
+                    _pending_ui: dict = {"label": None, "btn": None}
+
+                    def _mark_pending():
+                        if _pending_ui["label"]:
+                            _pending_ui["label"].set_visibility(True)
+                        if _pending_ui["btn"]:
+                            _pending_ui["btn"].set_visibility(True)
+
                     async def handle_bom_toggle(toggled_type_id: int):
                         if toggled_type_id in buy_as_is_ids:
                             buy_as_is_ids.discard(toggled_type_id)
                         else:
                             buy_as_is_ids.add(toggled_type_id)
-                        await do_calculate()
+                        _mark_pending()
 
                     async def handle_me_change(tid: int, new_me: int):
                         state["me_overrides"][tid] = new_me
-                        await do_calculate()
+                        _mark_pending()
 
                     async def handle_station_change(tid: int, sid: int | None):
                         if tid == item.type_id:
@@ -584,7 +607,7 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                                 state["station_overrides"].pop(tid, None)
                             else:
                                 state["station_overrides"][tid] = sid
-                        await do_calculate()
+                        _mark_pending()
 
                     render_bom_tree(
                         bom_tree,
@@ -593,6 +616,22 @@ async def industry_page(type_id: int = 0, queue_id: int = 0):
                         on_station_change=handle_station_change,
                         available_stations=mfg_structs,
                     )
+
+                    # Indicador de alterações pendentes + botão Recalcular
+                    with ui.row().classes("items-center gap-3 q-mt-sm q-px-sm"):
+                        _pending_label = ui.label(
+                            "Alterações pendentes — clique em Recalcular para atualizar os custos."
+                        ).classes("text-yellow-5 text-caption")
+                        _pending_label.set_visibility(False)
+                        _pending_ui["label"] = _pending_label
+
+                        _recalc_btn = ui.button(
+                            "Recalcular BOM",
+                            icon="refresh",
+                            on_click=lambda: do_calculate(),
+                        ).props("unelevated color=amber-8 dense")
+                        _recalc_btn.set_visibility(False)
+                        _pending_ui["btn"] = _recalc_btn
 
                 # ── Botão: Salvar na Fila ─────────────────────────────────────
                 _save_item_snapshot = {
@@ -697,10 +736,16 @@ def _render_materials_table(materials: list[dict]):
 
             has_inventory_local = any(m.get("in_stock", 0) > 0 for m in materials)
             lines = []
+            csv_rows = ["Material,Quantidade,Preco Unitario (ISK),Total (ISK)"]
             for m in materials:
                 qty = m.get("to_buy", m["quantity"]) if has_inventory_local else m["quantity"]
                 lines.append(f"{m['name']} {qty:,}")
+                unit  = m.get("unit_price") or 0.0
+                total = m.get("total_cost") or 0.0
+                name_esc = m["name"].replace('"', '""')
+                csv_rows.append(f'"{name_esc}",{qty},{unit:.2f},{total:.2f}')
             clipboard_text = "\\n".join(lines).replace("'", "\\'")
+            csv_text = "\n".join(csv_rows)
 
             async def _copy_to_clipboard():
                 await ui.run_javascript(
@@ -708,9 +753,18 @@ def _render_materials_table(materials: list[dict]):
                 )
                 ui.notify("Lista copiada!", type="positive", position="top-right", timeout=2000)
 
+            async def _copy_csv_to_clipboard(csv=csv_text):
+                await ui.run_javascript(
+                    f"navigator.clipboard.writeText({json.dumps(csv)})"
+                )
+                ui.notify("CSV copiado!", type="positive", position="top-right", timeout=2000)
+
             ui.button("Copiar lista", icon="content_copy", on_click=_copy_to_clipboard).props(
                 "flat dense color=grey-5 size=sm"
             )
+            ui.button("Copiar CSV", icon="table_view", on_click=_copy_csv_to_clipboard).props(
+                "flat dense color=teal-5 size=sm"
+            ).tooltip("Copia a lista em formato CSV para Excel / Google Sheets")
 
         columns = [
             {"name": "name",       "label": "Material",   "field": "name",       "align": "left",  "sortable": True},

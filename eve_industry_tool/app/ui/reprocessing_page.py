@@ -22,8 +22,9 @@ from app.ui.layout import page_layout
 
 logger = logging.getLogger(__name__)
 
-_QTY_SUFFIX = re.compile(r'\s+[xX]\s+[\d,\.]+$')
-_QTY_PREFIX = re.compile(r'^[\d,\.]+\s+[xX]\s+')
+_QTY_SUFFIX   = re.compile(r'\s+[xX]\s+[\d,\.]+$')
+_QTY_PREFIX   = re.compile(r'^[\d,\.]+\s+[xX]\s+')
+_TRAILING_NUM = re.compile(r'\s+\d[\d,\.]*$')
 
 
 @ui.page("/reprocessing")
@@ -147,6 +148,7 @@ async def reprocessing_page():
                 name = raw.split('\t')[0].strip()
                 name = _QTY_SUFFIX.sub('', name).strip()
                 name = _QTY_PREFIX.sub('', name).strip()
+                name = _TRAILING_NUM.sub('', name).strip()
                 if name:
                     parsed.append(name)
             item_names = list(dict.fromkeys(parsed))

@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "created_at": "2026-04-21T13:59:24.001Z",
+  "lifetime": {
+    "total_tokens_estimated": 256,
+    "total_reads": 0,
+    "total_writes": 4,
+    "total_sessions": 10,
+    "anatomy_hits": 0,
+    "anatomy_misses": 0,
+    "repeated_reads_blocked": 0,
+    "estimated_savings_vs_bare_cli": 0
+  },
+  "sessions": [
+    {
+      "id": "session-2026-04-24-1335",
+      "started": "2026-04-24T16:35:10.488Z",
+      "ended": "2026-04-24T16:39:59.178Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/mnt/d/git-projeto/EVE ONLINE - ajudante da industria/.gitignore",
+          "tokens_estimated": 64,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 64,
+        "reads_count": 0,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
+      }
+    },
+    {
+      "id": "session-2026-04-24-1335",
+      "started": "2026-04-24T16:35:10.488Z",
+      "ended": "2026-04-24T16:40:13.335Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/mnt/d/git-projeto/EVE ONLINE - ajudante da industria/.gitignore",
+          "tokens_estimated": 64,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 64,
+        "reads_count": 0,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
+      }
+    },
+    {
+      "id": "session-2026-04-24-1335",
+      "started": "2026-04-24T16:35:10.488Z",
+      "ended": "2026-04-24T16:41:11.725Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/mnt/d/git-projeto/EVE ONLINE - ajudante da industria/.gitignore",
+          "tokens_estimated": 64,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 64,
+        "reads_count": 0,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
+      }
+    },
+    {
+      "id": "session-2026-04-24-1335",
+      "started": "2026-04-24T16:35:10.488Z",
+      "ended": "2026-04-24T16:41:26.034Z",
+      "reads": [],
+      "writes": [
+        {
+          "file": "/mnt/d/git-projeto/EVE ONLINE - ajudante da industria/.gitignore",
+          "tokens_estimated": 64,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 0,
+        "output_tokens_estimated": 64,
+        "reads_count": 0,
+        "writes_count": 1,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 0
+      }
+    }
+  ],
+  "daemon_usage": [],
+  "waste_flags": [],
+  "optimization_report": {
+    "last_generated": "2026-04-21T14:26:25.135Z",
+    "patterns": []
+  }
+}

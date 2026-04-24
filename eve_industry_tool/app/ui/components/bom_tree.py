@@ -12,6 +12,7 @@ Features:
 """
 
 import asyncio
+import json
 import logging
 
 from nicegui import ui
@@ -36,6 +37,21 @@ def _fmt(value: float) -> str:
     if abs(value) >= 1_000_000:
         return f"{value / 1_000_000:.2f} M"
     return f"{value:,.0f}"
+
+
+def _flatten_bom(node: BOMNode, depth: int = 0) -> list[dict]:
+    """Retorna lista plana de todos os nós do BOM com seus dados."""
+    node_type = "Fabricar" if (node.is_manufactured and not node.buy_as_is) else "Comprar"
+    rows = [{
+        "name":       node.type_name,
+        "quantity":   node.quantity,
+        "node_type":  node_type,
+        "unit_price": node.unit_price or 0.0,
+        "total_cost": node.total_cost or 0.0,
+    }]
+    for child in node.children:
+        rows.extend(_flatten_bom(child, depth + 1))
+    return rows
 
 
 def _count_distinct_leaves(node: BOMNode, seen: set | None = None) -> int:
@@ -75,6 +91,17 @@ def render_bom_tree(
     for s in (available_stations or []):
         station_opts[s.id] = f"{s.name} (ME {s.me_bonus:.1f}%)"
 
+    # Prepara textos de cópia a partir da árvore
+    _flat = _flatten_bom(root)
+    _list_text = "\n".join(f"{r['name']} {r['quantity']:,}" for r in _flat)
+    _csv_rows  = ["Material,Quantidade,Tipo,Preco Unitario (ISK),Total (ISK)"]
+    for _r in _flat:
+        _n = _r["name"].replace('"', '""')
+        _csv_rows.append(
+            f'"{_n}",{_r["quantity"]},{_r["node_type"]},{_r["unit_price"]:.2f},{_r["total_cost"]:.2f}'
+        )
+    _csv_text = "\n".join(_csv_rows)
+
     with ui.card().classes("q-pa-md bg-grey-9 w-full"):
 
         # ── Cabeçalho ─────────────────────────────────────────────────────────
@@ -88,6 +115,22 @@ def render_bom_tree(
                 hints.append("Estação por sub-componente")
             if hints:
                 ui.label("  ·  ".join(hints)).classes("text-caption text-grey-6 q-ml-sm")
+
+            async def _copy_bom_list(t=_list_text):
+                await ui.run_javascript(f"navigator.clipboard.writeText({json.dumps(t)})")
+                ui.notify("Lista BOM copiada!", type="positive", position="top-right", timeout=2000)
+
+            async def _copy_bom_csv(t=_csv_text):
+                await ui.run_javascript(f"navigator.clipboard.writeText({json.dumps(t)})")
+                ui.notify("CSV BOM copiado!", type="positive", position="top-right", timeout=2000)
+
+            with ui.row().classes("q-ml-auto gap-1"):
+                ui.button("Lista", icon="content_copy", on_click=_copy_bom_list).props(
+                    "flat dense color=grey-5 size=sm"
+                ).tooltip("Copia todos os componentes como lista (nome + quantidade)")
+                ui.button("CSV", icon="table_view", on_click=_copy_bom_csv).props(
+                    "flat dense color=teal-5 size=sm"
+                ).tooltip("Copia todos os componentes em formato CSV para Excel / Google Sheets")
 
         # ── Cabeçalho das colunas ─────────────────────────────────────────────
         with ui.row().classes(
@@ -281,12 +324,22 @@ def _render_node(node: BOMNode, depth: int, on_toggle, on_me_change, on_station_
     if can_expand:
         children_col = ui.column().classes("w-full").style("gap:0")
         children_col.set_visibility(is_expanded[0])
-        with children_col:
-            for child in node.children:
-                _render_node(child, depth + 1, on_toggle, on_me_change, on_station_change, station_opts)
+
+        # Lazy render: só renderiza filhos se o nó começa expandido.
+        # Nós colapsados (depth >= 2) renderizam os filhos na primeira expansão.
+        rendered = [is_expanded[0]]
+        if is_expanded[0]:
+            with children_col:
+                for child in node.children:
+                    _render_node(child, depth + 1, on_toggle, on_me_change, on_station_change, station_opts)
 
         async def _toggle_expand():
             is_expanded[0] = not is_expanded[0]
+            if is_expanded[0] and not rendered[0]:
+                rendered[0] = True
+                with children_col:
+                    for child in node.children:
+                        _render_node(child, depth + 1, on_toggle, on_me_change, on_station_change, station_opts)
             children_col.set_visibility(is_expanded[0])
             expand_btn._props["icon"] = (
                 "expand_more" if is_expanded[0] else "chevron_right"

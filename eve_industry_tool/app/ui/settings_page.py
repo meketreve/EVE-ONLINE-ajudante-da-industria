@@ -65,8 +65,6 @@ async def settings_page():
         "default_sales_tax_pct":        0.08,
         "default_price_source":         "sell",
         "default_freight_cost_per_m3":  0.0,
-        "default_structure_me_bonus":   0.0,
-        "default_structure_te_bonus":   0.0,
     }
 
     market_options: dict[str, str] = {}
@@ -86,8 +84,6 @@ async def settings_page():
                     "default_sales_tax_pct":        row.default_sales_tax_pct,
                     "default_price_source":         row.default_price_source,
                     "default_freight_cost_per_m3":  getattr(row, "default_freight_cost_per_m3", 0.0),
-                    "default_structure_me_bonus":   getattr(row, "default_structure_me_bonus", 0.0),
-                    "default_structure_te_bonus":   getattr(row, "default_structure_te_bonus", 0.0),
                 })
 
             opts = await get_market_options(0, db)
@@ -118,8 +114,6 @@ async def settings_page():
                     "default_broker_fee_pct":       max(0, float(broker_input.value or 3)) / 100.0,
                     "default_sales_tax_pct":        max(0, float(sales_tax_input.value or 8)) / 100.0,
                     "default_freight_cost_per_m3":  max(0, float(freight_input.value or 0)),
-                    "default_structure_me_bonus":   max(0, min(100, float(struct_me_input.value or 0))),
-                    "default_structure_te_bonus":   max(0, min(100, float(struct_te_input.value or 0))),
                     "updated_at":                   datetime.utcnow(),
                 }
 
@@ -282,20 +276,6 @@ async def settings_page():
                     min=0, max=100, step=0.01,
                 ).classes("w-full")
                 scc_input.props("outlined dense dark")
-
-                struct_me_input = ui.number(
-                    label="Bônus ME da Estrutura (%)",
-                    value=current["default_structure_me_bonus"],
-                    min=0, max=100, step=0.1,
-                ).classes("w-full")
-                struct_me_input.props("outlined dense dark")
-
-                struct_te_input = ui.number(
-                    label="Bônus TE da Estrutura (%)",
-                    value=current["default_structure_te_bonus"],
-                    min=0, max=100, step=0.1,
-                ).classes("w-full")
-                struct_te_input.props("outlined dense dark")
 
         # ── Seção: Frete ──────────────────────────────────────────────────────
         with ui.expansion("Frete", icon="local_shipping").classes(
@@ -626,6 +606,7 @@ async def _render_mfg_structures(container: ui.column):
                 "name":           s.name,
                 "structure_type": s.structure_type,
                 "me_bonus":       f"{s.me_bonus:.1f}%",
+                "me_bonus_raw":   s.me_bonus,
             }
             for s in structures
         ]
@@ -636,11 +617,72 @@ async def _render_mfg_structures(container: ui.column):
 
         table.add_slot("body-cell-actions", """
             <q-td :props="props">
+                <q-btn flat round dense icon="edit" color="blue-grey-4"
+                       @click="$emit('edit_struct', props.row)"
+                       title="Editar" />
                 <q-btn flat round dense icon="delete" color="red-5"
                        @click="$emit('delete_struct', props.row)"
                        title="Remover" />
             </q-td>
         """)
+
+        struct_type_options = {t["value"]: t["label"] for t in STRUCTURE_TYPES}
+
+        async def edit_struct(e):
+            row = e.args
+            struct_id   = row.get("id")
+            struct_name = row.get("name", "")
+            struct_type = row.get("structure_type", "raitaru")
+            me_raw      = float(row.get("me_bonus_raw", 0))
+
+            with ui.dialog() as dialog, ui.card().classes("q-pa-md bg-grey-9 min-w-80"):
+                ui.label("Editar Estrutura de Manufatura").classes("text-h6 text-white q-mb-md")
+
+                name_input = ui.input(label="Nome", value=struct_name).classes("w-full")
+                name_input.props("outlined dense dark")
+
+                stype_select = ui.select(
+                    options=struct_type_options,
+                    value=struct_type,
+                    label="Tipo",
+                ).classes("w-full")
+                stype_select.props("outlined dense dark")
+
+                me_input = ui.number(
+                    label="Bônus ME (%)", value=me_raw, min=0, max=100, step=0.1
+                ).classes("w-full")
+                me_input.props("outlined dense dark")
+
+                async def save_edit():
+                    name = (name_input.value or "").strip()
+                    if not name:
+                        ui.notify("Nome é obrigatório.", type="warning")
+                        return
+                    try:
+                        async with AsyncSessionLocal() as db:
+                            res = await db.execute(
+                                select(ManufacturingStructure).where(
+                                    ManufacturingStructure.id == struct_id
+                                )
+                            )
+                            s = res.scalar_one_or_none()
+                            if s:
+                                s.name           = name
+                                s.structure_type = stype_select.value or "custom"
+                                s.me_bonus       = max(0.0, min(100.0, float(me_input.value or 0)))
+                                await db.commit()
+                        ui.notify(f"'{name}' atualizada.", type="positive")
+                        dialog.close()
+                        container.clear()
+                        await _render_mfg_structures(container)
+                    except Exception as exc:
+                        ui.notify(f"Erro: {exc}", type="negative")
+
+                with ui.row().classes("gap-2 q-mt-md justify-end"):
+                    ui.button("Cancelar", on_click=dialog.close).props("flat color=grey-5")
+                    ui.button("Salvar", on_click=save_edit).props("unelevated color=primary")
+
+            dialog.open()
 
         async def delete_struct(e):
             struct_id = e.args.get("id")
@@ -659,6 +701,7 @@ async def _render_mfg_structures(container: ui.column):
                 except Exception as exc:
                     ui.notify(f"Erro: {exc}", type="negative")
 
+        table.on("edit_struct", edit_struct)
         table.on("delete_struct", delete_struct)
 
 

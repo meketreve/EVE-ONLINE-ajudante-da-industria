@@ -290,7 +290,7 @@ class ESIClient:
 
         Returns a dict with: CharacterID, CharacterName, ExpiresOn, Scopes, etc.
         """
-        url = "https://esi.evetech.net/verify/"
+        url = "https://login.eveonline.com/v2/oauth/verify"
         return await self._get(url, token=access_token)
 
     def compute_expiry(self, expires_in: int) -> datetime:

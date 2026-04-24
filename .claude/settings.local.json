@@ -34,7 +34,13 @@
       "Bash(cd:*)",
       "Bash(python:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(rtk read *)",
+      "Bash(rtk ls *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk git *)",
+      "Bash(git check-ignore *)",
+      "Bash(git config *)"
     ]
   }
 }

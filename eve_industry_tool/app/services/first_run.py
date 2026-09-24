@@ -171,6 +171,7 @@ async def ensure_hub_prices(force: bool = False) -> None:
 
     if count:
         _set("prices", "done", f"Preços de {count:,} itens carregados.", 1.0)
+        logger.info("Preços de Jita carregados: %d itens.", count)
     else:
         _set("prices", "error", "Não foi possível baixar os preços de Jita. Tente de novo mais tarde.")
 

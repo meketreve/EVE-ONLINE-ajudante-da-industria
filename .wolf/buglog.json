@@ -103,6 +103,23 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-24T14:10:00"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-09-24T14:40:00",
+      "error_message": "Iniciar.bat: checagem de versão do Python via py/python nunca funcionava",
+      "file": "Iniciar.bat",
+      "root_cause": "set \"CHECK=-c \"...>= (3, 11)...\"\": aspas aninhadas deixavam o >= fora de aspas e o cmd tratava como redirecionamento",
+      "fix": "sem variável: py -3.12/3.13/3.11 direto e python -c com 'not in [...]' entre aspas; nenhum < ou > solto no .bat",
+      "tags": [
+        "bat",
+        "cmd",
+        "redirecionamento",
+        "python"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-24T14:40:00"
     }
   ]
 }

@@ -28,6 +28,8 @@
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
 - [2026-09-24] NiceGUI: não chamar `refreshable.refresh()` em timer para atualizar texto — recria o elemento (pisca e perde estado de expansion). Atualizar labels no lugar e só dar refresh quando a estrutura mudar.
+- [2026-09-24] .bat: nunca usar < ou > fora de aspas (nem em comentário) — o cmd redireciona. Aspas aninhadas em set "X=..."..."" deixam trechos fora de aspas.
+- [2026-09-24] Push direto na main quando o usuário pedir: se o checkout for bloqueado por .wolf/*, usar `git push origin <branch>:main` (fast-forward) e `git branch -f main`.
 - [2026-09-24] run.log do NiceGUI pode ter bytes binários: usar `grep -a`.
 - [2026-09-24] Não usar `pkill -f run.py` (ou padrão que case com o próprio comando do shell): mata o shell da ferramenta (exit 144). Matar pelo PID ou usar padrão com caminho absoluto exclusivo.
 - [2026-09-24] Arquivos da raiz (.bat, .gitignore) usam CRLF — editar preservando CRLF; .bat em ASCII puro.

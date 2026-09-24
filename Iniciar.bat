@@ -11,11 +11,11 @@ echo.
 set "VENV_PY=.venv\Scripts\python.exe"
 if exist "%VENV_PY%" goto :deps
 
-:: -- 1. Localiza um Python 3.11+ -------------------------------------------
+:: -- 1. Localiza um Python 3.11 a 3.13 -----------------------------------------
 call :find_python
 if defined PY goto :create_venv
 
-echo [!] Python 3.11 ou superior nao encontrado.
+echo [!] Python 3.11, 3.12 ou 3.13 nao encontrado.
 echo.
 echo     O Python e necessario para rodar o programa.
 echo     Posso instala-lo agora automaticamente (requer internet).
@@ -89,18 +89,21 @@ set PYTHONIOENCODING=utf-8
 if errorlevel 1 pause
 exit /b 0
 
-:: -- Procura py launcher, python no PATH e instalacoes padrao -------------
+:: -- Procura Python 3.11-3.13 (pythonnet/pywebview ainda nao suporta 3.14+) --
+:: Nao usar sinais de maior/menor nas linhas: fora de aspas o cmd redireciona.
 :find_python
 set "PY="
-set "CHECK=-c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)""
-py -3 !CHECK! >nul 2>&1 && (set "PY=py -3" & exit /b 0)
-python !CHECK! >nul 2>&1 && (set "PY=python" & exit /b 0)
-for %%V in (313 312 311) do (
+for %%V in (3.12 3.13 3.11) do (
+    if not defined PY (
+        py -%%V -c "import sys" >nul 2>&1 && set "PY=py -%%V"
+    )
+)
+if defined PY exit /b 0
+python -c "import sys; sys.exit(sys.version_info[:2] not in [(3, 11), (3, 12), (3, 13)])" >nul 2>&1 && set "PY=python"
+if defined PY exit /b 0
+for %%V in (312 313 311) do (
     for %%D in ("%LOCALAPPDATA%\Programs\Python\Python%%V" "%ProgramFiles%\Python%%V") do (
-        if exist "%%~D\python.exe" (
-            set "PY="%%~D\python.exe""
-            exit /b 0
-        )
+        if not defined PY if exist "%%~D\python.exe" set "PY="%%~D\python.exe""
     )
 )
 exit /b 0

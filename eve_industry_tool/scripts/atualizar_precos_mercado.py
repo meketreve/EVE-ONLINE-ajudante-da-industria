@@ -28,12 +28,11 @@ from pathlib import Path
 os.chdir(Path(__file__).parent.parent)
 sys.path.insert(0, str(Path.cwd()))
 
-import base64
 import httpx
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import select, text
 
-from app.config import settings
+from app.config import settings, sso_token_auth
 from app.models.character import Character
 from app.models.market_structure import MarketStructure
 from app.database.database import Base
@@ -71,15 +70,11 @@ class ESIClient:
             await self._client.aclose()
 
     async def refresh_token(self, refresh_token: str) -> dict:
-        credentials = f"{settings.EVE_CLIENT_ID}:{settings.EVE_CLIENT_SECRET}"
-        b64 = base64.b64encode(credentials.encode()).decode()
+        headers, auth_data = sso_token_auth()
         r = await self.client.post(
             SSO_TOKEN_URL,
-            headers={
-                "Authorization": f"Basic {b64}",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            headers=headers,
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token, **auth_data},
         )
         r.raise_for_status()
         return r.json()

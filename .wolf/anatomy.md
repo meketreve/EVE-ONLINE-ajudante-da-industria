@@ -1,14 +1,19 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-24T16:37:21.738Z
-> Files: 66 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-24T17:15:54.645Z
+> Files: 70 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../home/meketreve/.claude/projects/-mnt-SSD-git-projeto-EVE-ONLINE---ajudante-da-industria/memory/
+
+- `no-sensitive-commits.md` (~252 tok)
 
 ## ./
 
 - `.gitignore` — Git ignore rules (~402 tok)
-- `0_instalar.bat` (~990 tok)
-- `1_iniciar.bat` (~240 tok)
 - `CLAUDE.md` — OpenWolf (~2655 tok)
+- `Iniciar.bat` — launcher único: acha/instala Python 3.11+, cria .venv, instala deps quando requirements muda, roda app.main (~900 tok)
+- `iniciar.sh` — launcher Linux: .venv-linux, deps, abre no navegador (EVE_TOOL_NATIVE=0); --sem-secret testa PKCE, --nativo janela nativa (~700 tok)
+- `iniciar.sh` — EVE Industry Tool — iniciar no Linux (~819 tok)
 - `README.md` — Project documentation (~1952 tok)
 
 ## .claude/
@@ -34,7 +39,7 @@
 
 ## eve_industry_tool/app/
 
-- `config.py` — Declares Settings (~271 tok)
+- `config.py` — Settings: sso_token_auth (~763 tok)
 - `main.py` — handle_oauth_callback, startup, shutdown (~3230 tok)
 
 ## eve_industry_tool/app/database/
@@ -68,10 +73,13 @@
 - `crawler_service.py` — run_crawl_job (~5116 tok)
 - `discovery_service.py` — enqueue_asset_discovery, enqueue_validate (~3277 tok)
 - `esi_client.py` — ESIError: client, close, get_character_info, get_character_skills + 14 more (~3514 tok)
+- `first_run.py` — is_running, sde_missing, ensure_sde, ensure_hub_prices (~2664 tok)
+- `first_run.py` — tasks, ensure_sde (itens OU reprocessamento vazios; fallback Fuzzwork), ensure_hub_prices (Jita), run_first_run, get_checklist (~2300 tok)
 - `industry_calculator.py` — from: total_cost, calculate_production_cost, calculate_profit, apply_me_level (~1255 tok)
 - `job_runner.py` — JobRunner: start, stop, enqueue (~878 tok)
 - `market_service.py` — clear_price_cache, get_prices_cache_only, refresh_prices_for_types, get_best_price + 4 more (~4298 tok)
 - `settings_service.py` — load_settings, save_settings (~1462 tok)
+- `sso.py` — start_login, pop_verifier (~441 tok)
 
 ## eve_industry_tool/app/ui/
 
@@ -93,6 +101,8 @@
 - `bom_tree.py` — render_bom_tree (~4092 tok)
 - `cost_breakdown.py` — render_cost_breakdown (~1441 tok)
 - `price_chart.py` — render_price_charts (~998 tok)
+- `setup_panel.py` — first_run_banner (progresso/erro + Tentar de novo), setup_checklist (Dashboard) (~1400 tok)
+- `setup_panel.py` — first_run_banner, refresh, setup_checklist, render (~1609 tok)
 - `structure_selector.py` — render_structure_selector, get_structure_bonuses (~586 tok)
 
 ## eve_industry_tool/scripts/

@@ -17,7 +17,6 @@ Uso:
 """
 
 import asyncio
-import base64
 import os
 import sys
 from collections import defaultdict
@@ -31,7 +30,7 @@ import httpx
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.config import settings
+from app.config import settings, sso_token_auth
 from app.models.character import Character
 from app.models.market_structure import MarketStructure
 from app.database.database import Base
@@ -55,13 +54,11 @@ class Client:
         self.http.close()
 
     def refresh_token(self, refresh_token: str) -> dict:
-        creds = f"{settings.EVE_CLIENT_ID}:{settings.EVE_CLIENT_SECRET}"
-        b64 = base64.b64encode(creds.encode()).decode()
+        headers, auth_data = sso_token_auth()
         r = self.http.post(
             SSO_TOKEN_URL,
-            headers={"Authorization": f"Basic {b64}",
-                     "Content-Type": "application/x-www-form-urlencoded"},
-            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            headers=headers,
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token, **auth_data},
         )
         r.raise_for_status()
         return r.json()

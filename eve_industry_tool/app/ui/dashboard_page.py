@@ -12,6 +12,7 @@ from sqlalchemy import select, func
 from app.database.database import AsyncSessionLocal
 from app.models.production_queue import ProductionQueue
 from app.models.structure import Structure
+from app.ui.components.setup_panel import setup_checklist
 from app.ui.layout import page_layout
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,9 @@ async def dashboard_page():
             with ui.column().classes("gap-0"):
                 ui.label(f"Olá, {character_name}!").classes("text-h5 text-white font-bold")
                 ui.label("Bem-vindo ao EVE Industry Tool").classes("text-caption text-grey-5")
+
+        # Checklist de preparação (recolhe sozinho quando o essencial está pronto)
+        await setup_checklist(character_id)
 
         # Cards de estatísticas
         with ui.row().classes("gap-4 q-mb-xl flex-wrap"):

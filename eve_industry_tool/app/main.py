@@ -7,13 +7,14 @@ desktop app (pywebview window).
 
 import asyncio
 import logging
+import os
 import secrets
 from datetime import datetime
 from urllib.parse import urlencode, parse_qs, urlparse
 
 from nicegui import ui, app as nicegui_app
 
-from app.config import settings
+from app.config import settings, APP_PORT
 from app.database.database import init_db, AsyncSessionLocal
 
 logging.basicConfig(
@@ -62,9 +63,16 @@ async def handle_oauth_callback(request):
         if not code:
             return HTMLResponse(_callback_html("Erro", "Código de autorização ausente.", success=False))
 
-        # Troca o código por tokens
+        from app.services.sso import pop_verifier
+        verifier = pop_verifier(state)
+        if not verifier:
+            return HTMLResponse(_callback_html(
+                "Erro", "Sessão de login expirada ou inválida. Clique em Entrar novamente.", success=False,
+            ))
+
+        # Troca o código por tokens (PKCE)
         try:
-            token_data = await esi_client.exchange_code_for_token(code)
+            token_data = await esi_client.exchange_code_for_token(code, verifier)
         except ESIError as exc:
             logger.error("Falha na troca de token: %s", exc)
             return HTMLResponse(_callback_html("Erro", f"Falha na autenticação: {exc}", success=False))
@@ -130,6 +138,16 @@ async def handle_oauth_callback(request):
                 db.add(User(character_id=character_id))
 
             await db.commit()
+
+        # Procura mercados de estruturas nos assets do personagem logo após o login
+        # (o scheduler só refaz isso a cada 6h)
+        try:
+            from app.services.discovery_service import enqueue_asset_discovery
+            async with AsyncSessionLocal() as db:
+                await enqueue_asset_discovery(character_id, db)
+                await db.commit()
+        except Exception as exc:
+            logger.warning("Discovery pós-login não enfileirado: %s", exc)
 
         # Armazena na sessão NiceGUI (app.storage.general é por-browser)
         # Como é app nativo, existe apenas um "usuário"
@@ -277,6 +295,10 @@ async def startup():
     crawl_runner.start()
     logger.info("Workers iniciados.")
 
+    # Primeiro uso: dados do jogo (SDE) e preços de Jita em background, se faltarem
+    from app.services.first_run import run_first_run
+    asyncio.create_task(run_first_run(), name="first_run")
+
     # Inicia scheduler
     asyncio.create_task(_scheduler_loop(), name="scheduler")
     logger.info("Scheduler iniciado.")
@@ -302,12 +324,14 @@ async def shutdown():
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ in {"__main__", "__mp_main__"}:
+    # EVE_TOOL_NATIVE=0 abre no navegador em vez de janela nativa (útil no Linux sem GTK/Qt)
+    native = os.getenv("EVE_TOOL_NATIVE", "1") != "0"
     ui.run(
-        native=True,
+        native=native,
         title="EVE Industry Tool",
-        window_size=(1400, 900),
+        window_size=(1400, 900) if native else None,
         reload=False,
-        port=8765,
+        port=APP_PORT,
         storage_secret=settings.SECRET_KEY,
         dark=True,
     )

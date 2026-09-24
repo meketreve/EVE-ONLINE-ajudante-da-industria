@@ -5,28 +5,16 @@ Handles OAuth2 callback via /auth/callback route.
 """
 
 import logging
-import secrets
 import webbrowser
 from datetime import datetime
-from urllib.parse import urlencode
 
 from nicegui import ui, app as nicegui_app
 
 from app.config import settings
+from app.services.sso import start_login
+from app.ui.components.setup_panel import first_run_banner
 
 logger = logging.getLogger(__name__)
-
-
-def _build_sso_url(state: str) -> str:
-    """Constrói a URL de autorização do EVE SSO."""
-    params = {
-        "response_type": "code",
-        "redirect_uri":  settings.EVE_CALLBACK_URL,
-        "client_id":     settings.EVE_CLIENT_ID,
-        "scope":         settings.SSO_SCOPES,
-        "state":         state,
-    }
-    return f"{settings.SSO_BASE_URL}/v2/oauth/authorize?{urlencode(params)}"
 
 
 @ui.page("/")
@@ -39,6 +27,8 @@ async def login_page():
         return
 
     with ui.column().classes("items-center justify-center w-full min-h-screen gap-6 bg-grey-10"):
+        with ui.element("div").style("width: min(560px, 92vw)"):
+            first_run_banner()
         with ui.card().classes("q-pa-xl text-center bg-grey-9 shadow-8 rounded-lg"):
             ui.icon("rocket_launch").classes("text-6xl text-blue-grey-3 q-mb-md")
             ui.label("EVE Industry Tool").classes("text-h4 text-white font-bold q-mb-xs")
@@ -48,16 +38,14 @@ async def login_page():
 
             if not settings.EVE_CLIENT_ID:
                 ui.label(
-                    "Configure EVE_CLIENT_ID e EVE_CLIENT_SECRET no arquivo .env para habilitar o login."
+                    "Login indisponível: defina DEFAULT_EVE_CLIENT_ID em app/config.py "
+                    "ou EVE_CLIENT_ID no arquivo .env."
                 ).classes("text-caption text-orange-5 q-mb-md")
 
             waiting = {"active": False}
 
             async def do_login():
-                state = secrets.token_urlsafe(32)
-                nicegui_app.storage.general["oauth_state"] = state
-                sso_url = _build_sso_url(state)
-                webbrowser.open(sso_url)
+                webbrowser.open(start_login())
                 status_label.set_text("Aguardando callback do EVE SSO...")
                 spinner.set_visibility(True)
                 waiting["active"] = True

@@ -150,6 +150,15 @@ async def get_fresh_token(character: Character, db: AsyncSession) -> str | None:
             return character.access_token
         except ESIError as exc:
             logger.warning("Falha ao renovar token do personagem %s: %s", character.character_id, exc)
+            if "invalid_grant" in str(exc):
+                # Login revogado/expirado no EVE SSO: marca como desconectado para
+                # parar as tentativas em background até o personagem entrar de novo.
+                character.access_token = None
+                character.refresh_token = None
+                character.token_expiry = None
+                await db.flush()
+                logger.warning("Personagem %s (%s) precisa fazer login de novo.",
+                               character.character_name, character.character_id)
             return None
 
 

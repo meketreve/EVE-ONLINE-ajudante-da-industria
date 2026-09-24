@@ -7,6 +7,8 @@ from datetime import datetime
 
 from nicegui import ui, app as nicegui_app
 
+from app.ui.components.setup_panel import first_run_banner
+
 
 NAV_ITEMS = [
     ("/dashboard",    "home",                    "Dashboard"),
@@ -76,6 +78,7 @@ def page_layout(title: str = "EVE Industry Tool"):
 
     # Main content area
     with ui.column().classes("w-full p-4"):
+        first_run_banner()
         yield
 
     # Footer / status bar

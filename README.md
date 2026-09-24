@@ -47,12 +47,46 @@ O app segue o padrão **cache-first com atualizações em background**:
 
 ---
 
-## Pré-requisitos
+## Como usar (Windows)
 
-- Python 3.11 ou superior
-- Conta de desenvolvedor EVE Online com aplicação registrada em [developers.eveonline.com](https://developers.eveonline.com)
+1. Baixe o projeto (botão **Code → Download ZIP** no GitHub) e extraia em uma pasta.
+2. Dê dois cliques em **`Iniciar.bat`**.
+3. Clique em **Entrar com EVE Online** e autorize o personagem no navegador.
 
-**Escopos ESI necessários** (configurar na aplicação EVE Developer):
+Só isso. Na primeira execução o `Iniciar.bat`:
+
+- procura o Python 3.11+ e, se não houver, oferece instalar via `winget`;
+- cria um ambiente isolado em `eve_industry_tool/.venv` e instala as dependências (reinstala sozinho quando `requirements.txt` muda);
+- abre o app, que baixa sozinho os dados do jogo (SDE, ~14 MB; se falhar, usa o Fuzzwork) e os preços de Jita, com aviso de progresso;
+- no Dashboard, um checklist de **Primeiros passos** mostra o que está pronto e o que falta configurar.
+
+Não é preciso criar conta de desenvolvedor nem arquivo `.env`: o login usa o fluxo **PKCE** do EVE SSO com o Client ID do projeto (`DEFAULT_EVE_CLIENT_ID` em `app/config.py`). A `SECRET_KEY` da sessão é gerada no primeiro uso e guardada em `eve_industry_tool/.secret_key`.
+
+---
+
+## Instalação manual / desenvolvimento
+
+Requer Python 3.11+.
+
+```bash
+cd eve_industry_tool
+pip install -r requirements.txt
+python -m app.main
+```
+
+O SDE é importado automaticamente se o banco estiver vazio. Para reimportar: **Configurações → Importar SDE**, ou `python scripts/import_sde.py`.
+
+### Usar a sua própria aplicação EVE (opcional)
+
+Registre uma aplicação em [developers.eveonline.com](https://developers.eveonline.com) com callback `http://localhost:8765/auth/callback` e os escopos abaixo, e crie `eve_industry_tool/.env`:
+
+```env
+EVE_CLIENT_ID=seu_client_id
+# Opcional — sem ele o login usa PKCE (recomendado para app desktop)
+EVE_CLIENT_SECRET=seu_client_secret
+```
+
+**Escopos ESI necessários:**
 ```
 esi-skills.read_skills.v1
 esi-characters.read_blueprints.v1
@@ -61,66 +95,6 @@ esi-markets.structure_markets.v1
 esi-corporations.read_structures.v1
 esi-universe.read_structures.v1
 ```
-
-**Callback URL** da aplicação EVE: `http://localhost:8765/auth/callback`
-
----
-
-## Instalação
-
-### 1. Clonar o repositório
-
-```bash
-git clone <url-do-repo>
-cd "EVE ONLINE - ajudante da industria"
-```
-
-### 2. Instalar dependências
-
-**Windows (recomendado):**
-```
-0_instalar.bat
-```
-O script verifica Python, instala dependências e orienta a configuração do `.env`.
-
-**Manual:**
-```bash
-pip install -r eve_industry_tool/requirements.txt
-```
-
-### 3. Configurar credenciais EVE SSO
-
-Crie o arquivo `eve_industry_tool/.env`:
-
-```env
-EVE_CLIENT_ID=seu_client_id
-EVE_CLIENT_SECRET=seu_client_secret
-EVE_CALLBACK_URL=http://localhost:8765/auth/callback
-SECRET_KEY=uma_chave_secreta_aleatoria_longa
-```
-
-### 4. Importar dados do SDE
-
-Baixa e importa itens, blueprints e materiais do Static Data Export (**apenas uma vez**):
-
-```bash
-python eve_industry_tool/scripts/import_sde.py
-```
-
-### 5. Iniciar o app
-
-**Windows:**
-```
-1_iniciar.bat
-```
-
-**Manual:**
-```bash
-cd eve_industry_tool
-python -m app.main
-```
-
-A janela desktop abre automaticamente.
 
 ---
 
@@ -155,7 +129,9 @@ eve_industry_tool/
 │   │   ├── discovery_service.py   # Descoberta de estruturas via assets
 │   │   ├── job_runner.py          # Fila de jobs async com deduplicação
 │   │   ├── settings_service.py    # Load/save de configurações do usuário
-│   │   └── character_service.py   # Dados de personagem, skills, token refresh
+│   │   ├── character_service.py   # Dados de personagem, skills, token refresh
+│   │   ├── sso.py                 # URL de login EVE SSO com PKCE
+│   │   └── first_run.py           # Primeiro uso: SDE + preços de Jita automáticos e checklist
 │   ├── models/                    # ORM SQLAlchemy (16 tabelas)
 │   └── database/
 │       └── database.py            # Setup SQLite, migrations no startup
@@ -164,10 +140,9 @@ eve_industry_tool/
 │   ├── atualizar_estruturas.py    # Descoberta de estruturas via ESI
 │   ├── atualizar_precos_mercado.py
 │   └── ordens_null.py             # Ordens de estruturas nullsec
-├── 0_instalar.bat                 # Instalação guiada (Windows)
-├── 1_iniciar.bat                  # Iniciar o app (Windows)
+├── Iniciar.bat                    # Instala o que faltar e abre o app (Windows)
 ├── requirements.txt
-└── .env                           # Credenciais (não versionado)
+└── .env                           # Opcional: credenciais próprias (não versionado)
 ```
 
 ---

@@ -6,12 +6,10 @@ Configure all application settings and manage manufacturing structures.
 import asyncio
 import logging
 import os
-import secrets
 import sys
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urlencode
 
 from nicegui import ui, app as nicegui_app
 from sqlalchemy import select, delete, func
@@ -21,6 +19,7 @@ _APP_DIR = Path(__file__).parent.parent.parent
 
 from app.config import settings as app_settings
 from app.database.database import AsyncSessionLocal
+from app.models.character import Character
 from app.models.user_settings import UserSettings
 from app.models.manufacturing_structure import ManufacturingStructure
 from app.models.structure import Structure
@@ -29,6 +28,7 @@ from app.models.cache import MarketPriceCache
 from app.models.job import DiscoveryJob
 from app.services.character_service import get_market_options
 from app.services.market_service import THE_FORGE_REGION_ID
+from app.services.sso import start_login
 from app.ui.layout import page_layout
 
 logger = logging.getLogger(__name__)
@@ -142,16 +142,6 @@ async def settings_page():
 
             _login_waiting = {"active": False}
 
-            def _build_sso_url(state: str) -> str:
-                params = {
-                    "response_type": "code",
-                    "redirect_uri":  app_settings.EVE_CALLBACK_URL,
-                    "client_id":     app_settings.EVE_CLIENT_ID,
-                    "scope":         app_settings.SSO_SCOPES,
-                    "state":         state,
-                }
-                return f"{app_settings.SSO_BASE_URL}/v2/oauth/authorize?{urlencode(params)}"
-
             if character_name:
                 with ui.row().classes("items-center gap-4 q-pa-sm bg-grey-8 rounded q-mb-sm"):
                     ui.icon("check_circle").classes("text-green-4 text-2xl")
@@ -181,10 +171,7 @@ async def settings_page():
                 login_spinner.set_visibility(False)
 
                 async def do_login_from_settings():
-                    state = secrets.token_urlsafe(32)
-                    nicegui_app.storage.general["oauth_state"] = state
-                    sso_url = _build_sso_url(state)
-                    webbrowser.open(sso_url)
+                    webbrowser.open(start_login())
                     login_status.set_text("Aguardando callback do EVE SSO...")
                     login_spinner.set_visibility(True)
                     _login_waiting["active"] = True
@@ -197,7 +184,8 @@ async def settings_page():
 
                 if not app_settings.EVE_CLIENT_ID:
                     ui.label(
-                        "Configure EVE_CLIENT_ID e EVE_CLIENT_SECRET no .env para habilitar o login."
+                        "Login indisponível: defina DEFAULT_EVE_CLIENT_ID em app/config.py "
+                        "ou EVE_CLIENT_ID no arquivo .env."
                     ).classes("text-caption text-orange-5 q-mb-xs")
 
                 ui.button(
@@ -205,6 +193,90 @@ async def settings_page():
                     icon="login",
                     on_click=do_login_from_settings,
                 ).props("unelevated color=blue-grey-7")
+
+        # ── Seção: Personagens conectados ─────────────────────────────────────
+        # O app usa TODOS os personagens em background (descoberta de estruturas,
+        # mercados privados), não só o da sessão atual.
+        with ui.card().classes("q-pa-md bg-grey-9 w-full q-mb-md"):
+            with ui.row().classes("items-center gap-2 q-mb-xs w-full"):
+                ui.icon("groups").classes("text-blue-grey-4")
+                ui.label("Personagens conectados").classes("text-subtitle1 text-white font-bold")
+                ui.space()
+                ui.button("Adicionar personagem", icon="person_add",
+                          on_click=lambda: _relogin(None)).props("flat dense color=blue-grey-3")
+            ui.label(
+                "Todos os personagens abaixo são usados para achar citadelas e ler mercados "
+                "privados. No EVE, escolha o personagem na tela de login."
+            ).classes("text-caption text-grey-6 q-mb-sm")
+
+            chars_state: dict = {"snapshot": None}
+
+            async def _load_chars():
+                async with AsyncSessionLocal() as db:
+                    return (await db.execute(
+                        select(Character).order_by(Character.character_name)
+                    )).scalars().all()
+
+            def _snapshot(chars) -> tuple:
+                return tuple((c.character_id, c.refresh_token is not None) for c in chars)
+
+            @ui.refreshable
+            async def chars_list():
+                chars = await _load_chars()
+                chars_state["snapshot"] = _snapshot(chars)
+                if not chars:
+                    ui.label("Nenhum personagem conectado.").classes("text-grey-5")
+                current_id = nicegui_app.storage.general.get("character_id")
+                for c in chars:
+                    active = c.refresh_token is not None
+                    with ui.row().classes("items-center gap-3 q-pa-sm bg-grey-8 rounded w-full q-mb-xs no-wrap"):
+                        ui.image(
+                            f"https://images.evetech.net/characters/{c.character_id}/portrait?size=64"
+                        ).classes("w-8 h-8 rounded")
+                        with ui.column().classes("gap-0 flex-1"):
+                            with ui.row().classes("items-center gap-2"):
+                                ui.label(c.character_name).classes("text-white font-bold")
+                                if c.character_id == current_id:
+                                    ui.badge("sessão atual", color="blue-grey-7")
+                            if active:
+                                ui.label("Conectado").classes("text-caption text-green-4")
+                            else:
+                                ui.label(
+                                    "Login expirado — entre de novo com este personagem"
+                                ).classes("text-caption text-orange-4")
+                        if not active:
+                            ui.button("Entrar de novo", icon="login",
+                                      on_click=lambda n=c.character_name: _relogin(n)) \
+                                .props("unelevated dense color=orange-8")
+                        else:
+                            ui.button(icon="link_off",
+                                      on_click=lambda cid=c.character_id: _disconnect(cid)) \
+                                .props("flat dense round color=grey-5") \
+                                .tooltip("Desconectar (para de usar este personagem)")
+
+            def _relogin(name: str | None):
+                webbrowser.open(start_login())
+                who = f"com {name}" if name else "com o personagem desejado"
+                ui.notify(f"Faça login {who} no navegador. A lista atualiza sozinha.",
+                          type="info", timeout=8000)
+
+            async def _disconnect(cid: int):
+                async with AsyncSessionLocal() as db:
+                    c = (await db.execute(
+                        select(Character).where(Character.character_id == cid)
+                    )).scalar_one_or_none()
+                    if c:
+                        c.access_token = c.refresh_token = c.token_expiry = None
+                        await db.commit()
+                ui.notify("Personagem desconectado.", type="info")
+                await chars_list.refresh()
+
+            async def _poll_chars():
+                if _snapshot(await _load_chars()) != chars_state["snapshot"]:
+                    await chars_list.refresh()
+
+            await chars_list()
+            ui.timer(3.0, _poll_chars)
 
         # ── Seção: Mercado ────────────────────────────────────────────────────
         with ui.expansion("Mercado", icon="store").classes(
@@ -371,7 +443,7 @@ async def settings_page():
                 ).tooltip("Força novo download mesmo com cache existente.")
                 btn_sde_fuzzwork = ui.button("Usar Fuzzwork", icon="cloud_download").props(
                     "unelevated color=deep-orange dense"
-                ).tooltip("Usa Fuzzwork (~130 MB) como fonte — inclui dados de reprocessamento.")
+                ).tooltip("Usa Fuzzwork (~150 MB) como fonte alternativa ao EVERef.")
 
             # ── Subseção: Estruturas e preços ─────────────────────────────────
             ui.label("Estruturas e preços de mercado").classes("text-caption text-grey-4 text-bold")

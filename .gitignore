@@ -7,6 +7,7 @@ __pycache__/
 
 # Ambientes virtuais
 .venv/
+.venv-linux/
 venv/
 env/
 ENV/
@@ -31,6 +32,7 @@ logs/
 
 # ── Credenciais e variáveis de ambiente ──────────────────────────────────────
 .env
+.secret_key
 .env.*
 !.env.example
 secrets.json
@@ -44,6 +46,7 @@ sde/
 sde-*
 everef_cache*
 fuzzwork_cache*
+fuzzwork_temp*
 
 # ── IDEs e editores ───────────────────────────────────────────────────────────
 .vscode/

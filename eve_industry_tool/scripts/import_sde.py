@@ -4,7 +4,7 @@ Importa dados estáticos do EVE Online para o banco local.
 
 Fontes (tentadas em ordem):
   1. EVERef reference-data  — ~13 MB tar.xz, atualizado diariamente
-  2. Fuzzwork SQLite SDE     — ~130 MB bz2, atualizado a cada patch
+  2. Fuzzwork SQLite SDE     — ~150 MB gz (~500 MB descomprimido), a cada patch
 
 Uso:
     python scripts/import_sde.py                 # baixa + importa
@@ -18,7 +18,8 @@ import os
 import sqlite3
 import sys
 import tarfile
-import bz2
+import gzip
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -33,7 +34,7 @@ import httpx
 # ---------------------------------------------------------------------------
 
 EVEREF_URL = "https://data.everef.net/reference-data/reference-data-latest.tar.xz"
-FUZZWORK_URL = "https://www.fuzzwork.co.uk/dump/sqlite-latest.sqlite.bz2"
+FUZZWORK_URL = "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz"
 
 EVEREF_CACHE = Path("everef_cache.tar.xz")
 FUZZWORK_CACHE = Path("fuzzwork_cache.sqlite")
@@ -114,14 +115,20 @@ def import_from_everef(db: sqlite3.Connection) -> None:
         print(f"    Lendo blueprints...")
         blueprints_data: dict = json.loads(tar.extractfile(tar.getmember(blueprints_file)).read())
 
-        # Reprocessamento — tenta nomes alternativos
-        reproc_data: dict | None = None
-        for candidate in ("type_materials.json", "invTypeMaterials.json", "typeMaterials.json"):
-            f = _find_in_tar(names, candidate)
-            if f:
-                print(f"    Lendo {candidate}...")
-                reproc_data = json.loads(tar.extractfile(tar.getmember(f)).read())
-                break
+        # Reprocessamento: o EVERef atual traz em types.json → type_materials;
+        # versões antigas traziam num arquivo separado (hoje vem vazio).
+        reproc_data: dict | None = {
+            tid: t["type_materials"]
+            for tid, t in types_data.items()
+            if t.get("type_materials")
+        } or None
+        if reproc_data is None:
+            for candidate in ("type_materials.json", "invTypeMaterials.json", "typeMaterials.json"):
+                f = _find_in_tar(names, candidate)
+                if f:
+                    print(f"    Lendo {candidate}...")
+                    reproc_data = json.loads(tar.extractfile(tar.getmember(f)).read()) or None
+                    break
 
     _insert_items_everef(db, types_data, {}, blueprints_data)
     _insert_blueprints_everef(db, blueprints_data)
@@ -255,7 +262,7 @@ def _insert_blueprints_everef(db: sqlite3.Connection, blueprints_data: dict) -> 
 
 
 # ---------------------------------------------------------------------------
-# Fonte 2 — Fuzzwork SQLite SDE (bz2)
+# Fonte 2 — Fuzzwork SQLite SDE (gz)
 # ---------------------------------------------------------------------------
 
 def download_fuzzwork(force: bool = False) -> bool:
@@ -263,14 +270,20 @@ def download_fuzzwork(force: bool = False) -> bool:
         print(f"[✓] Cache Fuzzwork encontrado: {FUZZWORK_CACHE}")
         return True
 
-    bz2_path = Path("fuzzwork_temp.sqlite.bz2")
-    if not _download(FUZZWORK_URL, bz2_path):
+    gz_path = Path("fuzzwork_temp.sqlite.gz")
+    if not _download(FUZZWORK_URL, gz_path):
         return False
 
     print("[↓] Descomprimindo Fuzzwork SDE...")
-    with bz2.open(bz2_path, "rb") as f_in:
-        FUZZWORK_CACHE.write_bytes(f_in.read())
-    bz2_path.unlink()
+    try:
+        with gzip.open(gz_path, "rb") as f_in, open(FUZZWORK_CACHE, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out, length=1_048_576)
+    except (OSError, EOFError) as exc:
+        print(f"    Erro ao descomprimir: {exc}")
+        FUZZWORK_CACHE.unlink(missing_ok=True)
+        return False
+    finally:
+        gz_path.unlink(missing_ok=True)
     size_mb = FUZZWORK_CACHE.stat().st_size / 1_048_576
     print(f"[✓] Fuzzwork SDE: {FUZZWORK_CACHE} ({size_mb:.0f} MB)")
     return True
@@ -307,6 +320,7 @@ def _insert_reprocessing_everef(db: sqlite3.Connection, reproc_data: dict) -> No
     Importa dados de reprocessamento do EVERef.
     Aceita dois formatos:
       - dict: {type_id_str: [{material_type_id, quantity}, ...]}
+      - dict: {type_id_str: {material_id_str: {material_type_id, quantity}}}  (types.json)
       - list:  [{type_id, material_type_id, quantity}, ...]
     """
     print("[→] Importando materiais de reprocessamento (EVERef)...")
@@ -321,6 +335,9 @@ def _insert_reprocessing_everef(db: sqlite3.Connection, reproc_data: dict) -> No
                 rows.append((int(tid), int(mat), int(qty)))
     elif isinstance(reproc_data, dict):
         for tid_str, mats in reproc_data.items():
+            # types.json usa {material_id: {material_type_id, quantity}}
+            if isinstance(mats, dict):
+                mats = list(mats.values())
             if isinstance(mats, list):
                 for m in mats:
                     mat = m.get("material_type_id") or m.get("materialTypeID")

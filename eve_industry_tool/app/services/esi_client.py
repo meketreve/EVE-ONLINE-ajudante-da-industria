@@ -5,14 +5,13 @@ All public methods that require authentication accept an access_token string.
 Token refresh is handled transparently when a 401 is returned.
 """
 
-import base64
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
 
-from app.config import settings
+from app.config import settings, sso_token_auth
 
 logger = logging.getLogger(__name__)
 
@@ -237,19 +236,16 @@ class ESIClient:
         Returns a dict with keys: access_token, refresh_token, expires_in.
         """
         url = f"{settings.SSO_BASE_URL}/v2/oauth/token"
-        credentials = f"{settings.EVE_CLIENT_ID}:{settings.EVE_CLIENT_SECRET}"
-        b64_credentials = base64.b64encode(credentials.encode()).decode()
+        headers, auth_data = sso_token_auth()
 
         try:
             response = await self.client.post(
                 url,
-                headers={
-                    "Authorization": f"Basic {b64_credentials}",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
+                headers=headers,
                 data={
                     "grant_type": "refresh_token",
                     "refresh_token": refresh_token,
+                    **auth_data,
                 },
             )
             response.raise_for_status()
@@ -257,26 +253,24 @@ class ESIClient:
         except httpx.HTTPStatusError as exc:
             raise ESIError(exc.response.status_code, exc.response.text) from exc
 
-    async def exchange_code_for_token(self, code: str) -> dict:
+    async def exchange_code_for_token(self, code: str, code_verifier: str) -> dict:
         """
-        Exchange an authorization code for tokens.
+        Exchange an authorization code for tokens (PKCE).
 
         Returns a dict with: access_token, refresh_token, expires_in, token_type.
         """
         url = f"{settings.SSO_BASE_URL}/v2/oauth/token"
-        credentials = f"{settings.EVE_CLIENT_ID}:{settings.EVE_CLIENT_SECRET}"
-        b64_credentials = base64.b64encode(credentials.encode()).decode()
+        headers, auth_data = sso_token_auth()
 
         try:
             response = await self.client.post(
                 url,
-                headers={
-                    "Authorization": f"Basic {b64_credentials}",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
+                headers=headers,
                 data={
                     "grant_type": "authorization_code",
                     "code": code,
+                    "code_verifier": code_verifier,
+                    **auth_data,
                 },
             )
             response.raise_for_status()

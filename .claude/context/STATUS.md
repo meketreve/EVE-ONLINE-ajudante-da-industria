@@ -7,7 +7,6 @@ automáticos, checklist no Dashboard, lista de personagens em Configurações, `
 
 ## Próxima fase
 - Testar o `Iniciar.bat` num Windows real, de preferência sem Python instalado (só foi revisado, não executado).
-- Decidir o que fazer com os ~30 arquivos que diferem só em fim de linha (CRLF) no working tree.
 
 ## Pendências e bloqueios
 - `CLAUDE.md` da raiz ainda descreve a stack antiga (FastAPI/Jinja/HTMX); a atual é NiceGUI.

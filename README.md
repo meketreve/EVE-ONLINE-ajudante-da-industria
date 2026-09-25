@@ -96,6 +96,10 @@ EVE_TOOL_NATIVE=0 python -m app.main    # no navegador
 
 O SDE é importado automaticamente se o banco estiver vazio ou incompleto. Para reimportar: **Configurações → Importar SDE**, ou `python scripts/import_sde.py` (`--source fuzzwork` força o Fuzzwork, `--force-download` baixa de novo).
 
+**Fim de linha:** o código usa LF; só o `Iniciar.bat` fica em CRLF (o Windows exige, e o `.gitattributes` garante isso). Se o editor converter arquivos para CRLF, volte para LF antes de commitar para não gerar diffs de arquivo inteiro.
+
+**Notas de desenvolvimento** ficam em `.claude/context/`: `STATUS.md` (onde o projeto está), `TODO.md`, `MAP.md` (comandos e onde fica cada coisa), `LEARNINGS.md` (pegadinhas e decisões) e `BUGS.md` (bugs resolvidos).
+
 ### Usar a sua própria aplicação EVE (opcional)
 
 O app já vem com o Client ID do projeto (`DEFAULT_EVE_CLIENT_ID` em `app/config.py`). Para usar outra aplicação, registre em [developers.eveonline.com](https://developers.eveonline.com) com callback `http://localhost:8765/auth/callback` e os escopos abaixo, e crie `eve_industry_tool/.env`:
@@ -145,6 +149,8 @@ O app segue o padrão **cache-first com atualizações em background**:
 .
 ├── Iniciar.bat                    # Windows: instala o que faltar e abre o app
 ├── iniciar.sh                     # Linux: idem, abre no navegador
+├── .gitattributes                 # Fim de linha: .bat sempre CRLF, .sh sempre LF
+├── .claude/context/               # Notas de desenvolvimento: status, TODO, mapa, aprendizados, bugs
 └── eve_industry_tool/
     ├── app/
     │   ├── main.py                # Entry point NiceGUI, scheduler, OAuth callback

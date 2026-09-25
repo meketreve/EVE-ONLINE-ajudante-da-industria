@@ -4,7 +4,6 @@
 - [ ] Testar `Iniciar.bat` no Windows (máquina sem Python → winget → venv → app)
 
 ## Depois
-- [ ] Normalizar fim de linha dos arquivos com só CRLF no working tree (voltar para LF) ou descartar
 - [ ] Atualizar `CLAUDE.md` da raiz para a stack NiceGUI atual
 - [ ] Empacotar como `.exe` (PyInstaller/Nuitka) e publicar em GitHub Release
 - [ ] Tooltips nos termos técnicos (ME, TE, SCI, SCC, broker fee)

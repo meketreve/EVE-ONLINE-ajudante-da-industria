@@ -18,11 +18,16 @@
 - Migrations ficam em `database.py → create_tables()` como blocos `ALTER TABLE` (sem Alembic). TTLs: mercado de região 5 min, estrutura 4 h, skills 1 h, info de estrutura 24 h.
 - 2026-09-24 — Repo mudou para `meketreve/EVE-ONLINE-ajudante-da-industria` (sem traço triplo).
 
+- 2026-09-26 — `zipfile` do Python não restaura permissões: o updater reaplica o bit de execução a partir de `external_attr`; o `.sh` relança com `exec bash`.
+- 2026-09-26 — cmd e bash leem o script enquanto executam: atualizar + reiniciar o launcher tem que ficar no mesmo bloco `( )` / `if ... fi`.
+- 2026-09-26 — `.claude/settings.local.json` estava versionado desde o 1º commit (antes do `.gitignore`); removido do índice.
+
 ## Erros a não repetir
 - 2026-09-24 — `pkill -f <padrão>` que casa com o próprio comando mata o shell da ferramenta. Matar pelo PID (via `ss -ltnp`).
 - 2026-09-24 — Arquivos da raiz com CRLF (`.bat`): preservar; `.gitignore` e código em LF (HEAD é LF).
 
 ## Decisões e o porquê
+- 2026-09-26 — Autoupdate por **GitHub Release** (não por commit): o usuário só recebe o que foi marcado como pronto. Updater valida o zip (arquivos obrigatórios + VERSION = tag) e não apaga mais de 30% dos arquivos.
 - 2026-09-24 — Login PKCE com Client ID embutido: usuário não cria app nem `.env`. Secret opcional só no `.env` local.
 - 2026-09-24 — Primeiro uso automático + checklist em vez de passos manuais no README.
 - 2026-09-24 — OpenWolf removido (`.wolf/`, hooks e regras); o contexto do projeto fica só em `.claude/context/`.

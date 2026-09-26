@@ -4,6 +4,7 @@
 @.claude/context/TODO.md
 @.claude/context/MAP.md
 @.claude/context/LEARNINGS.md
+@.claude/context/WORKFLOW.md
 
 # EVE Industry Tool
 
@@ -50,5 +51,6 @@ Broker fee e sales tax vêm das skills do personagem (Broker Relations, Accounti
 - Migrations: bloco `ALTER TABLE` em `app/database/database.py → create_tables()` (sem Alembic).
 - NiceGUI: atualizar textos no lugar; `refreshable.refresh()` só quando a estrutura muda (senão pisca).
 - Fim de linha: código em LF; `Iniciar.bat` em CRLF e ASCII puro, sem `<`/`>` fora de aspas.
+- Usuários só recebem código novo por **GitHub Release** (`atualizar.py`); ver `.claude/context/WORKFLOW.md` e o skill `/release`.
 - **Nunca commitar** `database.db*`, `.env`, `.secret_key`, `.nicegui/`, Client Secret nem nomes/IDs de
   personagens. O Client ID em `config.py` é público (PKCE) e pode ficar no código.

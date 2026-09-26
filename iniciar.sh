@@ -27,6 +27,20 @@ echo "============================================"
 echo " EVE Industry Tool"
 echo "============================================"
 
+# ── 0. Atualização automática (última GitHub Release) ───────────────────────
+# Atualizar e reiniciar ficam no mesmo bloco: o bash lê o script enquanto executa,
+# então a versão nova do iniciar.sh precisa começar do zero (exec).
+UPD_PY="$VENV/bin/python"
+[ -x "$UPD_PY" ] || UPD_PY="$(command -v python3 || true)"
+if [ -n "$UPD_PY" ] && [ -z "${EVE_TOOL_UPDATED:-}" ]; then
+    rc=0
+    "$UPD_PY" "$(dirname "$SCRIPT")/atualizar.py" || rc=$?
+    if [ "$rc" = 10 ]; then
+        export EVE_TOOL_UPDATED=1
+        exec bash "$SCRIPT" "$@"
+    fi
+fi
+
 # ── 1. Python 3.11+ ──────────────────────────────────────────────────────────
 if [ ! -x "$VENV/bin/python" ]; then
     PY=""

@@ -75,3 +75,7 @@ htmlcov/
 
 # ── Arquivos temporários ──────────────────────────────────────────────────────
 message.txt
+
+# ── Autoupdate (gerados nas instalações de usuário) ──────────────────────────
+.arquivos-instalados
+.sem-autoupdate

@@ -10,10 +10,14 @@
 | Rodar (Linux) | `./iniciar.sh` (navegador) · `./iniciar.sh --sem-secret` testa PKCE |
 | Rodar (Windows) | `Iniciar.bat` |
 | Rodar (manual) | `cd eve_industry_tool && python -m app.main` · `EVE_TOOL_NATIVE=0` abre no navegador |
+| Checar autoupdate | `python3 atualizar.py` numa cópia **sem `.git`** (`EVE_TOOL_UPDATE_API=<url>` aponta para uma API falsa em testes) |
+| Publicar release | skill `/release` (VERSION → commit → `gh release create vX.Y.Z`) |
 | Reimportar SDE | `cd eve_industry_tool && python scripts/import_sde.py [--source fuzzwork] [--force-download]` |
 
 ## Onde fica cada coisa
-- `Iniciar.bat` / `iniciar.sh` — launchers; venv em `eve_industry_tool/.venv` (Windows) e `.venv-linux` (Linux)
+- `atualizar.py` + `VERSION` (raiz) — autoupdate por GitHub Release; manifesto local em `.arquivos-instalados`
+- `.claude/skills/release/SKILL.md` — passo a passo da release; `.claude/context/WORKFLOW.md` — quando lembrar dela
+- `Iniciar.bat` / `iniciar.sh` — launchers (bloco 0 = autoupdate + reinício); venv em `eve_industry_tool/.venv` (Windows) e `.venv-linux` (Linux)
 - `eve_industry_tool/app/main.py` — entry point, callback OAuth, scheduler, startup (`run_first_run`)
 - `eve_industry_tool/app/config.py` — `DEFAULT_EVE_CLIENT_ID`, `APP_PORT`, `SECRET_KEY` automática, `sso_token_auth()`
 - `app/services/sso.py` — URL de login com PKCE (state + verifier)

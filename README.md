@@ -10,7 +10,7 @@ Interface gráfica via **NiceGUI**: no Windows abre como janela desktop; no Linu
 
 ### Windows
 
-1. Baixe o projeto (botão **Code → Download ZIP** no GitHub) e extraia em uma pasta.
+1. Baixe a versão mais recente em [**Releases**](https://github.com/meketreve/EVE-ONLINE-ajudante-da-industria/releases/latest) (arquivo **Source code (zip)**) e extraia em uma pasta.
 2. Dê dois cliques em **`Iniciar.bat`**.
 3. Clique em **Entrar com EVE Online** e autorize o personagem no navegador.
 
@@ -43,6 +43,16 @@ Não é preciso criar conta de desenvolvedor nem arquivo `.env`. Ao abrir, o app
 - **Mercados de estruturas**: logo após o login, procura citadelas com mercado nos assets do personagem.
 
 Um aviso no topo das páginas mostra o andamento, com botão **Tentar de novo** se algo falhar. No **Dashboard**, o checklist **Primeiros passos** mostra o que está pronto e o que falta (revisar mercado e taxas, cadastrar estrutura de produção) e vira uma linha "Tudo pronto para usar" quando o essencial está feito.
+
+### Atualização automática
+
+Toda vez que você abre o programa pelo `Iniciar.bat` ou `iniciar.sh`, ele verifica se há uma versão nova publicada em [Releases](https://github.com/meketreve/EVE-ONLINE-ajudante-da-industria/releases) e, se houver, atualiza sozinho antes de abrir.
+
+- Seus dados ficam intactos: banco (`database.db`), personagens, configurações, `.env` e `.secret_key` nunca são sobrescritos.
+- Sem internet ou com o GitHub fora do ar, o programa abre na versão atual (a verificação espera no máximo 5 segundos).
+- Se a release baixada estiver incompleta ou corrompida, nada é alterado.
+- Pasta clonada com `git` não é atualizada sozinha: use `git pull`.
+- Para desligar: crie um arquivo vazio chamado `.sem-autoupdate` na pasta do programa, ou defina `EVE_TOOL_NO_UPDATE=1`.
 
 ### Personagens
 
@@ -78,6 +88,7 @@ Se o EVE recusar o login de um personagem (por exemplo, meses sem uso), ele apar
 | "Não foi possível baixar os dados do jogo" | Verifique a internet e clique em **Tentar de novo** no aviso, ou **Configurações → Importar SDE** |
 | Personagem com **Login expirado** | **Configurações → Personagens conectados → Entrar de novo** |
 | `Iniciar.bat` diz que não achou Python, mas você tem o 3.14 | A janela nativa ainda não suporta 3.14. Aceite instalar o 3.12 (fica lado a lado com o outro) |
+| Quero voltar para uma versão anterior | Baixe o zip da versão em Releases, extraia por cima e crie `.sem-autoupdate` para ela não ser atualizada |
 | Porta 8765 em uso | Feche outra instância do app que esteja aberta |
 | Reprocessamento sem dados | Abra o app: ele detecta e reimporta sozinho |
 
@@ -97,6 +108,8 @@ EVE_TOOL_NATIVE=0 python -m app.main    # no navegador
 O SDE é importado automaticamente se o banco estiver vazio ou incompleto. Para reimportar: **Configurações → Importar SDE**, ou `python scripts/import_sde.py` (`--source fuzzwork` força o Fuzzwork, `--force-download` baixa de novo).
 
 **Fim de linha:** o código usa LF; só o `Iniciar.bat` fica em CRLF (o Windows exige, e o `.gitattributes` garante isso). Se o editor converter arquivos para CRLF, volte para LF antes de commitar para não gerar diffs de arquivo inteiro.
+
+**Releases:** usuários só recebem código novo quando uma GitHub Release é publicada (commit na `main` sozinho não chega a ninguém). O `VERSION` do repositório tem que ser igual à tag (`v1.2.0` → `1.2.0`), senão o `atualizar.py` recusa a instalação. Passo a passo em `.claude/skills/release/SKILL.md`.
 
 **Notas de desenvolvimento** ficam em `.claude/context/`: `STATUS.md` (onde o projeto está), `TODO.md`, `MAP.md` (comandos e onde fica cada coisa), `LEARNINGS.md` (pegadinhas e decisões) e `BUGS.md` (bugs resolvidos).
 
@@ -149,8 +162,10 @@ O app segue o padrão **cache-first com atualizações em background**:
 .
 ├── Iniciar.bat                    # Windows: instala o que faltar e abre o app
 ├── iniciar.sh                     # Linux: idem, abre no navegador
+├── atualizar.py                   # Autoupdate pela última GitHub Release (chamado pelos launchers)
+├── VERSION                        # Versão instalada (igual à tag da release)
 ├── .gitattributes                 # Fim de linha: .bat sempre CRLF, .sh sempre LF
-├── .claude/context/               # Notas de desenvolvimento: status, TODO, mapa, aprendizados, bugs
+├── .claude/                       # Só desenvolvimento (fora do zip das releases): context/ e skills/release
 └── eve_industry_tool/
     ├── app/
     │   ├── main.py                # Entry point NiceGUI, scheduler, OAuth callback

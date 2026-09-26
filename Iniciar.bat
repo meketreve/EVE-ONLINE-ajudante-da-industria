@@ -8,6 +8,24 @@ echo  EVE Industry Tool
 echo ============================================
 echo.
 
+:: -- 0. Atualizacao automatica (ultima GitHub Release) ----------------------
+:: Atualizar e reiniciar ficam no mesmo bloco: o cmd le o .bat enquanto executa,
+:: entao a versao nova do Iniciar.bat precisa comecar do zero.
+:: Caminhos vao em variaveis (expandidas com !) para parenteses na pasta nao quebrarem o bloco.
+set "UPD_SCRIPT=%~dp0atualizar.py"
+set "SELF=%~f0"
+set "UPD_PY="
+if exist ".venv\Scripts\python.exe" set "UPD_PY=".venv\Scripts\python.exe""
+if not defined UPD_PY call :find_python
+if not defined UPD_PY if defined PY set "UPD_PY=!PY!"
+if defined UPD_PY if not defined EVE_TOOL_UPDATED (
+    !UPD_PY! "!UPD_SCRIPT!"
+    if errorlevel 10 (
+        set "EVE_TOOL_UPDATED=1"
+        "!SELF!"
+    )
+)
+
 set "VENV_PY=.venv\Scripts\python.exe"
 if exist "%VENV_PY%" goto :deps
 

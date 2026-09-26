@@ -1,7 +1,6 @@
 # TODO
 
 ## Agora
-- [ ] Publicar release v1.0.0 (`/release`)
 - [ ] Testar `Iniciar.bat` no Windows (máquina sem Python → winget → venv → app)
 
 ## Depois

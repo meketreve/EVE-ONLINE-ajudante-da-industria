@@ -4,7 +4,6 @@
 - [ ] Testar `Iniciar.bat` no Windows (máquina sem Python → winget → venv → app)
 
 ## Depois
-- [ ] Atualizar `CLAUDE.md` da raiz para a stack NiceGUI atual
 - [ ] Empacotar como `.exe` (PyInstaller/Nuitka) e publicar em GitHub Release
 - [ ] Tooltips nos termos técnicos (ME, TE, SCI, SCC, broker fee)
 - [ ] Assistente de primeiro uso (hub, mercado local, sistema de produção)

@@ -9,7 +9,6 @@ automáticos, checklist no Dashboard, lista de personagens em Configurações, `
 - Testar o `Iniciar.bat` num Windows real, de preferência sem Python instalado (só foi revisado, não executado).
 
 ## Pendências e bloqueios
-- `CLAUDE.md` da raiz ainda descreve a stack antiga (FastAPI/Jinja/HTMX); a atual é NiceGUI.
 - Sem testes automatizados nem config de lint no repo.
 
 ## Concluído (recente)

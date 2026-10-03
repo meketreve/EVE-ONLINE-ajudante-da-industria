@@ -45,7 +45,7 @@ jobs:
       - name: Iniciar.bat atualiza, reinicia na versão nova e sobe
         shell: pwsh
         run: |
-          Set-Content -NoNewline "$env:INST_DIR\eve_industry_tool\.secret_key" "chave-do-usuario"
+          python -c "import os; open(os.path.join(os.environ['INST_DIR'], 'eve_industry_tool', '.secret_key'), 'w').write('chave-do-usuario')"
           $log = cmd /c "$env:INST_DIR\Iniciar.bat" 2>&1 | Out-String
           $rc = $LASTEXITCODE
           Write-Output $log
@@ -55,7 +55,8 @@ jobs:
           }
           if ((Get-Content "$env:INST_DIR\VERSION").Trim() -ne '9.9.9') { throw 'VERSION não foi para 9.9.9' }
           if (-not (Test-Path "$env:INST_DIR\.novidades.json")) { throw '.novidades.json não foi gravado' }
-          if ((Get-Content -Raw "$env:INST_DIR\eve_industry_tool\.secret_key") -ne 'chave-do-usuario') { throw '.secret_key do usuário foi alterado' }
+          python -c "import os, sys; d = open(os.path.join(os.environ['INST_DIR'], 'eve_industry_tool', '.secret_key')).read(); print('.secret_key:', repr(d)); sys.exit(d != 'chave-do-usuario')"
+          if ($LASTEXITCODE -ne 0) { throw '.secret_key do usuário foi alterado' }
           Write-Output "OK: atualizou, reiniciou no launcher novo, dados do usuário preservados e app subiu"
 
   linux:

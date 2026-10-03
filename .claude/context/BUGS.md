@@ -30,3 +30,8 @@
 ## 2026-09-24 — Login falha sem EVE_CALLBACK_URL no .env
 - **Causa:** callback padrão na porta 8000; app roda na 8765.
 - **Correção:** `APP_PORT` em `config.py`.
+
+## 2026-10-02 — CI Windows: ".secret_key do usuário foi alterado"
+- **Sintoma:** job `windows` do workflow `Launchers` falhou na checagem do `.secret_key`, embora a atualização e o app tivessem funcionado.
+- **Causa:** a checagem com `Set-Content -NoNewline` + `Get-Content -Raw` do PowerShell não batia; o arquivo estava intacto (confirmado com `repr` via Python).
+- **Correção:** gravar e conferir via `python -c` no workflow (commit 8e77aad).

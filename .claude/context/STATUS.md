@@ -15,7 +15,7 @@ por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários
 
 ## Próxima fase
 
-- CI `Launchers` cobre `Iniciar.bat`/`iniciar.sh` (instalação, autoupdate + reinício, smoke). Falta só o caminho
+- CI `Launchers` **verde** no Windows e no Linux (run 37091512960). Cobre `Iniciar.bat`/`iniciar.sh` (instalação, autoupdate + reinício, smoke). Falta só o caminho
   "Windows sem Python → winget", que exige teste manual num Windows 10/11.
 
 ## Pendências e bloqueios
@@ -34,14 +34,17 @@ por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários
 data: 2026-10-02
 
 ```
+8e77aad ci: grava e confere o .secret_key via Python (diagnóstico no Windows)
+56fe1c0 ci: workflow Launchers testa Iniciar.bat (Windows) e iniciar.sh (Linux)
+a383d88 docs(context): registra a release v1.1.1
 87b5660 release: v1.1.1
 3ff7c8c fix: aviso de novidades também para quem atualizou da v1.0.0
 6cfbc3d docs(context): formato tier 2 do /contexto e registro da v1.1.0
 7f177a9 release: v1.1.0
 5dcc880 feat: login mantido entre aberturas e aviso "O que há de novo"
-3f87f3e docs(context): registra a release v1.0.0
-6cdca4c feat: atualização automática por GitHub Release
-a91141b docs: CLAUDE.md reescrito para a stack NiceGUI atual
 --- status ---
+ M .claude/context/BUGS.md
+ M .claude/context/LEARNINGS.md
+ M .claude/context/STATUS.md
 ```
 <!-- auto:end -->

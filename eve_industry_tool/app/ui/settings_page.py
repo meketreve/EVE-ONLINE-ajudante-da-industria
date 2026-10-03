@@ -150,7 +150,7 @@ async def settings_page():
                         ui.label("Autenticado via EVE SSO").classes("text-caption text-grey-5")
 
                     def do_logout():
-                        for key in ("character_name", "character_id", "access_token"):
+                        for key in ("character_name", "character_id"):
                             nicegui_app.storage.general.pop(key, None)
                         ui.navigate.to("/login")
 

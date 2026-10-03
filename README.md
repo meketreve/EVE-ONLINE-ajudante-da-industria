@@ -51,12 +51,15 @@ Toda vez que você abre o programa pelo `Iniciar.bat` ou `iniciar.sh`, ele verif
 - Seus dados ficam intactos: banco (`database.db`), personagens, configurações, `.env` e `.secret_key` nunca são sobrescritos.
 - Sem internet ou com o GitHub fora do ar, o programa abre na versão atual (a verificação espera no máximo 5 segundos).
 - Se a release baixada estiver incompleta ou corrompida, nada é alterado.
+- Depois de atualizar, o app mostra uma vez o aviso **"Atualizado para vX.Y.Z"** com as novidades da versão. A versão instalada aparece no rodapé.
 - Pasta clonada com `git` não é atualizada sozinha: use `git pull`.
 - Para desligar: crie um arquivo vazio chamado `.sem-autoupdate` na pasta do programa, ou defina `EVE_TOOL_NO_UPDATE=1`.
 
 ### Personagens
 
 Você pode conectar vários personagens: em **Configurações → Personagens conectados**, use **Adicionar personagem** e escolha o personagem na tela de login do EVE. Todos os personagens conectados são usados para achar citadelas e ler mercados privados.
+
+O login fica salvo: ao abrir o programa de novo, ele entra direto com o último personagem usado (ou com outro conectado, se o login daquele expirou). Depois de clicar em **Logout**, a próxima abertura pede login de novo.
 
 Se o EVE recusar o login de um personagem (por exemplo, meses sem uso), ele aparece como **Login expirado** no checklist e em Configurações. Clique em **Entrar de novo** e escolha esse personagem. Para parar de usar um personagem, clique no ícone de desconectar.
 
@@ -76,7 +79,7 @@ Se o EVE recusar o login de um personagem (por exemplo, meses sem uso), ele apar
 | **Estruturas de Manufatura** | Cadastro de Raitaru/Azbel/Sotiyo com bônus ME aplicado no cálculo |
 | **Descoberta de Estruturas** | Escaneia assets de todos os personagens para encontrar citadelas acessíveis com mercado |
 | **Mercados Privados** | Crawl automático a cada 15 min de ordens de estruturas Upwell |
-| **Vários personagens** | Login via EVE SSO (PKCE), status de cada personagem e aviso de login expirado |
+| **Vários personagens** | Login via EVE SSO (PKCE) mantido entre aberturas, status de cada personagem e aviso de login expirado |
 | **Primeiro uso automático** | Download de dados do jogo e preços com progresso, checklist de preparação |
 
 ---

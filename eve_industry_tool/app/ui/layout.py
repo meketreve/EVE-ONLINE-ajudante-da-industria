@@ -7,6 +7,8 @@ from datetime import datetime
 
 from nicegui import ui, app as nicegui_app
 
+from app.config import APP_VERSION
+from app.ui.components.novidades import whats_new_dialog
 from app.ui.components.setup_panel import first_run_banner
 
 
@@ -79,6 +81,7 @@ def page_layout(title: str = "EVE Industry Tool"):
     # Main content area
     with ui.column().classes("w-full p-4"):
         first_run_banner()
+        whats_new_dialog()
         yield
 
     # Footer / status bar
@@ -90,4 +93,4 @@ def page_layout(title: str = "EVE Industry Tool"):
                 ui.label("|").classes("text-grey-7")
             ui.label("EVE Industry Tool")
             ui.space()
-            ui.label(f"v1.0 — {datetime.now().strftime('%H:%M')}").classes("text-grey-6")
+            ui.label(f"v{APP_VERSION} — {datetime.now().strftime('%H:%M')}").classes("text-grey-6")

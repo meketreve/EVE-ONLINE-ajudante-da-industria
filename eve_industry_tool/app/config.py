@@ -16,6 +16,19 @@ DEFAULT_EVE_CLIENT_ID = "bba140b640f546e38673d56ef5f171f2"
 
 APP_PORT = 8765
 
+# Raiz da instalação (onde ficam VERSION, atualizar.py e os launchers)
+INSTALL_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _read_app_version() -> str:
+    try:
+        return (INSTALL_ROOT / "VERSION").read_text(encoding="utf-8").strip() or "?"
+    except OSError:
+        return "?"
+
+
+APP_VERSION = _read_app_version()
+
 _SECRET_KEY_FILE = Path(".secret_key")
 
 

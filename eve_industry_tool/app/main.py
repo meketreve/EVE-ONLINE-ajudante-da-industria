@@ -153,7 +153,6 @@ async def handle_oauth_callback(request):
         # Como é app nativo, existe apenas um "usuário"
         nicegui_app.storage.general["character_id"]   = character_id
         nicegui_app.storage.general["character_name"] = character_name
-        nicegui_app.storage.general["access_token"]   = access_token
 
         logger.info("Login bem-sucedido: %s (%d)", character_name, character_id)
 
@@ -258,6 +257,47 @@ async def _scheduler_loop() -> None:
                 logger.error("[scheduler] discovery geral falhou: %s", exc)
 
 
+# ── Sessão ────────────────────────────────────────────────────────────────────
+
+async def _restore_session() -> None:
+    """
+    Mantém o login entre aberturas: reabre com o personagem da última sessão se ele
+    ainda estiver conectado (tem refresh_token); se o login dele expirou, usa outro
+    personagem conectado. Sem personagem na sessão (logout ou primeiro uso), não loga ninguém.
+    """
+    from sqlalchemy import select
+    from app.models.character import Character
+
+    general = nicegui_app.storage.general
+    general.pop("access_token", None)  # versões antigas gravavam o token aqui; não é usado
+    last_id = general.get("character_id")
+    if not last_id:
+        return
+
+    async with AsyncSessionLocal() as db:
+        rows = (await db.execute(
+            select(Character.character_id, Character.character_name)
+            .where(Character.refresh_token.isnot(None))
+            .order_by(Character.updated_at.desc())
+        )).all()
+
+    active = {cid: name for cid, name in rows}
+    if last_id in active:
+        chosen = last_id
+    elif rows:
+        chosen = rows[0][0]
+        logger.info("Personagem da última sessão com login expirado; usando outro conectado.")
+    else:
+        general.pop("character_id", None)
+        general.pop("character_name", None)
+        logger.info("Nenhum personagem conectado: login necessário.")
+        return
+
+    general["character_id"] = chosen
+    general["character_name"] = active[chosen]
+    logger.info("Sessão restaurada.")
+
+
 # ── Startup ───────────────────────────────────────────────────────────────────
 
 @nicegui_app.on_startup
@@ -284,10 +324,7 @@ async def startup():
     await init_db()
     logger.info("Banco inicializado.")
 
-    # Login é obrigatório a cada inicialização — limpa sessão anterior
-    for _key in ("character_name", "character_id", "access_token"):
-        nicegui_app.storage.general.pop(_key, None)
-    logger.info("Sessão de autenticação limpa.")
+    await _restore_session()
 
     # Inicia workers de job
     from app.services.job_runner import discovery_runner, crawl_runner

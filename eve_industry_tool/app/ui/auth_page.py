@@ -12,6 +12,7 @@ from nicegui import ui, app as nicegui_app
 
 from app.config import settings
 from app.services.sso import start_login
+from app.ui.components.novidades import whats_new_dialog
 from app.ui.components.setup_panel import first_run_banner
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ async def login_page():
     with ui.column().classes("items-center justify-center w-full min-h-screen gap-6 bg-grey-10"):
         with ui.element("div").style("width: min(560px, 92vw)"):
             first_run_banner()
+        whats_new_dialog()
         with ui.card().classes("q-pa-xl text-center bg-grey-9 shadow-8 rounded-lg"):
             ui.icon("rocket_launch").classes("text-6xl text-blue-grey-3 q-mb-md")
             ui.label("EVE Industry Tool").classes("text-h4 text-white font-bold q-mb-xs")

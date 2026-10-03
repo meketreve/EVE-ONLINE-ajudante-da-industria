@@ -22,6 +22,8 @@
 - 2026-09-26 — cmd e bash leem o script enquanto executam: atualizar + reiniciar o launcher tem que ficar no mesmo bloco `( )` / `if ... fi`.
 - 2026-09-26 — `.claude/settings.local.json` estava versionado desde o 1º commit (antes do `.gitignore`); removido do índice.
 
+- 2026-10-02 — Sessão fica em `.nicegui/storage-general.json` (`character_id`/`character_name`); o startup restaura em vez de limpar. Logout apaga as chaves e é respeitado na próxima abertura. O access token não vai mais para esse arquivo.
+
 ## Erros a não repetir
 - 2026-09-24 — `pkill -f <padrão>` que casa com o próprio comando mata o shell da ferramenta. Matar pelo PID (via `ss -ltnp`).
 - 2026-09-24 — Arquivos da raiz com CRLF (`.bat`): preservar; `.gitignore` e código em LF (HEAD é LF).

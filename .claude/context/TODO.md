@@ -7,7 +7,6 @@
 - [ ] Empacotar como `.exe` (PyInstaller/Nuitka) e publicar em GitHub Release
 - [ ] Tooltips nos termos técnicos (ME, TE, SCI, SCC, broker fee)
 - [ ] Assistente de primeiro uso (hub, mercado local, sistema de produção)
-- [ ] Manter login entre aberturas (hoje o startup limpa a sessão)
 
 ## Ideias / talvez
 - Refatorar: `industry_page.py`, `ranking_page.py` e `settings_page.py` são grandes — extrair seções para `ui/components/`

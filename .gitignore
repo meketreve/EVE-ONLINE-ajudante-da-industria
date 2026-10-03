@@ -79,3 +79,4 @@ message.txt
 # ── Autoupdate (gerados nas instalações de usuário) ──────────────────────────
 .arquivos-instalados
 .sem-autoupdate
+.novidades.json

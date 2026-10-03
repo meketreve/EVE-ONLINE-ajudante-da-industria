@@ -39,11 +39,13 @@ MAX_REMOVED_FRACTION = 0.3
 ROOT = Path(__file__).resolve().parent
 VERSION_FILE = ROOT / "VERSION"
 MANIFEST_FILE = ROOT / ".arquivos-instalados"
+# Notas da release recém-instalada: o app mostra uma vez ("O que há de novo") e apaga
+NEWS_FILE = ROOT / ".novidades.json"
 
 # Nunca sobrescrever nem apagar: dados do usuário, ambientes e caches
 PROTECTED_NAMES = {
     ".env", ".secret_key", ".nicegui", ".venv", ".venv-linux", "__pycache__",
-    ".git", ".sem-autoupdate", ".arquivos-instalados",
+    ".git", ".sem-autoupdate", ".arquivos-instalados", ".novidades.json",
 }
 PROTECTED_PREFIXES = ("database.db", "everef_cache", "fuzzwork_")
 
@@ -182,6 +184,16 @@ def main() -> int:
     except Exception as exc:
         log(f"falha ao baixar/instalar {tag} ({exc}); seguindo com a versão atual.")
         return 0
+
+    try:
+        NEWS_FILE.write_text(json.dumps({
+            "tag": tag,
+            "from": ".".join(map(str, current)),
+            "body": release.get("body") or "",
+            "url": release.get("html_url") or "",
+        }, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass  # sem o aviso de novidades; a atualização em si já terminou
 
     log(f"atualizado para {tag} ({len(files)} arquivos). Seus dados foram mantidos.")
     return 10

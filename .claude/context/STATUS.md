@@ -1,4 +1,4 @@
-# Status — atualizado em 2026-09-26
+# Status — atualizado em 2026-10-02
 
 ## Estado atual
 App NiceGUI funcional (calculadora, fila, ranking de importação, reprocessamento, mercados de estruturas).
@@ -12,6 +12,7 @@ automáticos, checklist no Dashboard, lista de personagens em Configurações, `
 - Sem testes automatizados nem config de lint no repo.
 
 ## Concluído (recente)
+- 2026-10-02: login mantido entre aberturas e aviso "O que há de novo" + versão no rodapé (testados; aguardando release v1.1.0).
 - 2026-09-26: **v1.0.0 publicada** (primeira release; autoupdate verificado contra o GitHub real).
 - 2026-09-26: autoupdate por GitHub Release (`atualizar.py` + launchers), WORKFLOW de release e skill `/release`.
 - 2026-09-24: onboarding de primeiro uso, correção do import do SDE (EVERef/Fuzzwork), launchers, README.

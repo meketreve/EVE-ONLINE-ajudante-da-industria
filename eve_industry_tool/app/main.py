@@ -326,6 +326,10 @@ async def startup():
 
     await _restore_session()
 
+    # Aviso "O que há de novo": busca as notas no GitHub se o updater antigo não as deixou
+    from app.ui.components.novidades import start_news_check
+    start_news_check()
+
     # Inicia workers de job
     from app.services.job_runner import discovery_runner, crawl_runner
     discovery_runner.start()

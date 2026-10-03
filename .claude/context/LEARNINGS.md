@@ -32,6 +32,8 @@ tier: 2
 - [2026-10-02] [sessao] Sessão fica em `.nicegui/storage-general.json` (`character_id`/`character_name`); o startup restaura em vez de limpar. Logout apaga as chaves e é respeitado na próxima abertura. O access token não vai mais para esse arquivo.
 
 - [2026-10-02] [autoupdate] O update roda o `atualizar.py` **já instalado**: mudança no próprio updater só vale a partir da release seguinte — testar sempre a partir do zip da release anterior.
+- [2026-10-02] [autoupdate] Aviso de novidades: `.novidades.json` do updater ou, se faltar, o app busca `releases/tags/v{VERSION}` no startup (`novidades.prepare_news`); `last_seen_version` na sessão evita repetir.
+- [2026-10-02] [teste] Servidor de teste em background: matar pelo PID que escuta a porta (`ss -ltnp`) e esperar liberar; `$!` de `(cd ... && cmd &)` é do subshell, não do Python.
 
 ## Erros a não repetir
 - [2026-09-24] [shell] `pkill -f <padrão>` que casa com o próprio comando mata o shell da ferramenta. Matar pelo PID (via `ss -ltnp`).

@@ -29,6 +29,10 @@ def _read_app_version() -> str:
 
 APP_VERSION = _read_app_version()
 
+GITHUB_REPO = "meketreve/EVE-ONLINE-ajudante-da-industria"
+# Base da API de releases (sobrescrevível em testes)
+RELEASES_API = os.getenv("EVE_TOOL_RELEASES_API", f"https://api.github.com/repos/{GITHUB_REPO}/releases")
+
 _SECRET_KEY_FILE = Path(".secret_key")
 
 

@@ -51,7 +51,7 @@ Toda vez que você abre o programa pelo `Iniciar.bat` ou `iniciar.sh`, ele verif
 - Seus dados ficam intactos: banco (`database.db`), personagens, configurações, `.env` e `.secret_key` nunca são sobrescritos.
 - Sem internet ou com o GitHub fora do ar, o programa abre na versão atual (a verificação espera no máximo 5 segundos).
 - Se a release baixada estiver incompleta ou corrompida, nada é alterado.
-- Depois de atualizar, o app mostra uma vez o aviso **"Atualizado para vX.Y.Z"** com as novidades da versão. A versão instalada aparece no rodapé.
+- Depois de atualizar, o app mostra uma vez o aviso **"Atualizado para vX.Y.Z"** com as novidades da versão (se as notas não vieram junto com a atualização, ele as busca no GitHub ao abrir). A versão instalada aparece no rodapé.
 - Pasta clonada com `git` não é atualizada sozinha: use `git pull`.
 - Para desligar: crie um arquivo vazio chamado `.sem-autoupdate` na pasta do programa, ou defina `EVE_TOOL_NO_UPDATE=1`.
 

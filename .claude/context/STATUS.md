@@ -10,7 +10,7 @@ tier: 2
 ## Estado atual
 
 App NiceGUI funcional (calculadora, fila, ranking de importação, reprocessamento, mercados de estruturas).
-**v1.1.0 publicada** (Latest): primeiro uso sem configuração, login PKCE mantido entre aberturas, autoupdate
+**v1.1.1 publicada** (Latest): primeiro uso sem configuração, login PKCE mantido entre aberturas, autoupdate
 por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários recebem só o que vira release.
 
 ## Próxima fase
@@ -19,12 +19,11 @@ por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários
 
 ## Pendências e bloqueios
 
-- Quem atualiza da v1.0.0 não vê o aviso de novidades da v1.1.0 (o updater antigo não gravava as notas);
-  da v1.1.0 em diante funciona. Patch possível em v1.1.1 (ver TODO) — decisão do usuário.
 - Sem testes automatizados nem config de lint no repo.
 
 ## Concluído (recente)
 
+- v1.1.1 (2026-10-02): aviso de novidades também para quem veio da v1.0.0 (app busca as notas no GitHub).
 - v1.1.0 (2026-10-02): login mantido, aviso de novidades, versão no rodapé · v1.0.0 (2026-09-26): primeiro
   uso sem configuração, autoupdate, workflow `/release`.
 

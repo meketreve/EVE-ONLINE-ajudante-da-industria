@@ -44,7 +44,7 @@ VERSION
 - `.claude/skills/release/SKILL.md` — passo a passo da release; `.claude/context/WORKFLOW.md` — quando lembrar dela
 - `Iniciar.bat` / `iniciar.sh` — launchers (bloco 0 = autoupdate + reinício); venv em `eve_industry_tool/.venv` (Windows) e `.venv-linux` (Linux)
 - `eve_industry_tool/app/main.py` — entry point, callback OAuth, scheduler, startup (`_restore_session`, `run_first_run`)
-- `app/ui/components/novidades.py` — aviso "O que há de novo" (lê `.novidades.json` gravado pelo `atualizar.py`)
+- `app/ui/components/novidades.py` — aviso "O que há de novo": `.novidades.json` do updater ou busca no GitHub (`start_news_check` no startup)
 - `eve_industry_tool/app/config.py` — `DEFAULT_EVE_CLIENT_ID`, `APP_PORT`, `APP_VERSION` (lido do `VERSION`), `INSTALL_ROOT`, `SECRET_KEY` automática, `sso_token_auth()`
 - `app/services/sso.py` — URL de login com PKCE (state + verifier)
 - `app/services/first_run.py` — SDE/preços automáticos (`tasks`) e `get_checklist()`

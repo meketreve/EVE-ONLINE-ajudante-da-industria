@@ -1,4 +1,12 @@
+---
+updated: 2026-10-02
+tier: 2
+active: false
+---
+
 # TODO
+
+<!-- Importado só enquanto active: true. Ao terminar a tarefa, voltar p/ false. -->
 
 ## Agora
 - [ ] Testar `Iniciar.bat` no Windows (máquina sem Python → winget → venv → app)
@@ -9,6 +17,8 @@
 - [ ] Assistente de primeiro uso (hub, mercado local, sistema de produção)
 
 ## Ideias / talvez
+- CI no `windows-latest` rodando o `Iniciar.bat` (modo "só preparar") + testes das fórmulas
+- Patch v1.1.1: app detecta troca de `VERSION` e busca as notas da release (aviso para quem veio da v1.0.0)
 - Refatorar: `industry_page.py`, `ranking_page.py` e `settings_page.py` são grandes — extrair seções para `ui/components/`
 - Migrations para Alembic antes de mais mudanças de schema
 - Dividir `esi_client.py` (18 métodos) em clientes de personagem/mercado/estrutura

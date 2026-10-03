@@ -1,3 +1,8 @@
+---
+updated: 2026-10-02
+tier: 2
+---
+
 # Workflow do projeto
 
 <!-- Adotado em 2026-09-26. Vale para: toda feature ou correção que chega ao usuário final. -->

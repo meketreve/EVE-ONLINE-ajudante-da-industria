@@ -1,7 +1,6 @@
 # Contexto do projeto
 
 @.claude/context/STATUS.md
-@.claude/context/TODO.md
 @.claude/context/MAP.md
 @.claude/context/LEARNINGS.md
 @.claude/context/WORKFLOW.md
@@ -54,3 +53,4 @@ Broker fee e sales tax vêm das skills do personagem (Broker Relations, Accounti
 - Usuários só recebem código novo por **GitHub Release** (`atualizar.py`); ver `.claude/context/WORKFLOW.md` e o skill `/release`.
 - **Nunca commitar** `database.db*`, `.env`, `.secret_key`, `.nicegui/`, Client Secret nem nomes/IDs de
   personagens. O Client ID em `config.py` é público (PKCE) e pode ficar no código.
+@.claude/context/TODO.md

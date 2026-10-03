@@ -1,4 +1,11 @@
+---
+updated: 2026-10-02
+tier: 2
+---
+
 # Mapa do projeto
+
+<!-- TETO: 60 linhas. O `git log` guarda o resto. Bloco auto pertence ao script. -->
 
 ## Comandos
 | Ação | Comando |
@@ -13,6 +20,24 @@
 | Checar autoupdate | `python3 atualizar.py` numa cópia **sem `.git`** (`EVE_TOOL_UPDATE_API=<url>` aponta para uma API falsa em testes) |
 | Publicar release | skill `/release` (VERSION → commit → `gh release create vX.Y.Z`) |
 | Reimportar SDE | `cd eve_industry_tool && python scripts/import_sde.py [--source fuzzwork] [--force-download]` |
+
+Extraído do manifesto pelo script:
+
+<!-- auto:start -->
+gerado em: 2026-10-02
+
+primeiro nível:
+
+```
+atualizar.py
+CLAUDE.md
+eve_industry_tool
+Iniciar.bat
+iniciar.sh
+README.md
+VERSION
+```
+<!-- auto:end -->
 
 ## Onde fica cada coisa
 - `atualizar.py` + `VERSION` (raiz) — autoupdate por GitHub Release; manifesto local em `.arquivos-instalados`

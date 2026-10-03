@@ -11,8 +11,8 @@ tier: 2
 | Ação | Comando |
 |---|---|
 | Build | — (Python puro) |
-| Teste (tudo) | — (não há testes no repo) |
-| Teste (um só) | — |
+| Teste (tudo) | CI `.github/workflows/launchers.yml` (Windows + Linux) · `gh run list -w Launchers` |
+| Teste (um só) | `EVE_TOOL_SMOKE=1 ./iniciar.sh` (sobe o app sem janela e sai) |
 | Lint/format | `ruff check eve_industry_tool` (ruff não está no requirements; ~300 avisos antigos) |
 | Rodar (Linux) | `./iniciar.sh` (navegador) · `./iniciar.sh --sem-secret` testa PKCE |
 | Rodar (Windows) | `Iniciar.bat` |

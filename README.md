@@ -112,6 +112,8 @@ O SDE é importado automaticamente se o banco estiver vazio ou incompleto. Para 
 
 **Fim de linha:** o código usa LF; só o `Iniciar.bat` fica em CRLF (o Windows exige, e o `.gitattributes` garante isso). Se o editor converter arquivos para CRLF, volte para LF antes de commitar para não gerar diffs de arquivo inteiro.
 
+**CI:** o workflow `Launchers` (`.github/workflows/`) roda o `Iniciar.bat` no Windows e o `iniciar.sh` no Linux a cada push: instala tudo, testa o autoupdate com uma release falsa e sobe o app em modo de teste (`EVE_TOOL_SMOKE=1`).
+
 **Releases:** usuários só recebem código novo quando uma GitHub Release é publicada (commit na `main` sozinho não chega a ninguém). O `VERSION` do repositório tem que ser igual à tag (`v1.2.0` → `1.2.0`), senão o `atualizar.py` recusa a instalação. Passo a passo em `.claude/skills/release/SKILL.md`.
 
 **Notas de desenvolvimento** ficam em `.claude/context/`: `STATUS.md` (onde o projeto está), `TODO.md`, `MAP.md` (comandos e onde fica cada coisa), `LEARNINGS.md` (pegadinhas e decisões) e `BUGS.md` (bugs resolvidos).

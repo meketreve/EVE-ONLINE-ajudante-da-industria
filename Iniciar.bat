@@ -3,6 +3,10 @@ title EVE Industry Tool
 setlocal EnableDelayedExpansion
 cd /d "%~dp0eve_industry_tool"
 
+:: Modo de teste (CI, EVE_TOOL_SMOKE=1): nunca parar esperando uma tecla
+set "PAUSA=pause"
+if defined EVE_TOOL_SMOKE set "PAUSA=rem"
+
 echo ============================================
 echo  EVE Industry Tool
 echo ============================================
@@ -43,7 +47,7 @@ if /i not "!OPCAO!"=="S" (
     echo.
     echo Baixe em https://www.python.org/downloads/ e marque "Add Python to PATH".
     start https://www.python.org/downloads/
-    pause
+    %PAUSA%
     exit /b 1
 )
 
@@ -52,7 +56,7 @@ if errorlevel 1 (
     echo [!] Instalacao automatica indisponivel neste Windows.
     echo     Baixe em https://www.python.org/downloads/ e marque "Add Python to PATH".
     start https://www.python.org/downloads/
-    pause
+    %PAUSA%
     exit /b 1
 )
 
@@ -63,7 +67,7 @@ call :find_python
 if not defined PY (
     echo.
     echo [OK] Python instalado. Feche esta janela e abra o Iniciar.bat de novo.
-    pause
+    %PAUSA%
     exit /b 0
 )
 
@@ -73,7 +77,7 @@ echo [..] Preparando ambiente do programa (so na primeira vez)...
 %PY% -m venv .venv
 if errorlevel 1 (
     echo [!] Falha ao criar o ambiente Python.
-    pause
+    %PAUSA%
     exit /b 1
 )
 
@@ -88,7 +92,7 @@ echo [..] Instalando componentes (pode levar alguns minutos)...
 if errorlevel 1 (
     echo.
     echo [!] Falha ao instalar componentes. Verifique sua internet e tente de novo.
-    pause
+    %PAUSA%
     exit /b 1
 )
 copy /y requirements.txt .venv\requirements.installed >nul
@@ -104,8 +108,9 @@ echo ============================================
 echo.
 set PYTHONIOENCODING=utf-8
 "%VENV_PY%" -m app.main
-if errorlevel 1 pause
-exit /b 0
+set "RC=%errorlevel%"
+if not "%RC%"=="0" %PAUSA%
+exit /b %RC%
 
 :: -- Procura Python 3.11-3.13 (pythonnet/pywebview ainda nao suporta 3.14+) --
 :: Nao usar sinais de maior/menor nas linhas: fora de aspas o cmd redireciona.

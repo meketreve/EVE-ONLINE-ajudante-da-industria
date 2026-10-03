@@ -15,7 +15,8 @@ por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários
 
 ## Próxima fase
 
-- Testar o `Iniciar.bat` num Windows real (instalação + reinício após autoupdate); nunca foi executado.
+- CI `Launchers` cobre `Iniciar.bat`/`iniciar.sh` (instalação, autoupdate + reinício, smoke). Falta só o caminho
+  "Windows sem Python → winget", que exige teste manual num Windows 10/11.
 
 ## Pendências e bloqueios
 

@@ -9,7 +9,7 @@ active: false
 <!-- Importado só enquanto active: true. Ao terminar a tarefa, voltar p/ false. -->
 
 ## Agora
-- [ ] Testar `Iniciar.bat` no Windows (máquina sem Python → winget → venv → app)
+- [ ] Testar manualmente o caminho "Windows sem Python → winget" (o CI não cobre)
 
 ## Depois
 - [ ] Empacotar como `.exe` (PyInstaller/Nuitka) e publicar em GitHub Release
@@ -17,7 +17,7 @@ active: false
 - [ ] Assistente de primeiro uso (hub, mercado local, sistema de produção)
 
 ## Ideias / talvez
-- CI no `windows-latest` rodando o `Iniciar.bat` (modo "só preparar") + testes das fórmulas
+- Testes das fórmulas (custo, ME, margem) no CI `Launchers`
 - Refatorar: `industry_page.py`, `ranking_page.py` e `settings_page.py` são grandes — extrair seções para `ui/components/`
 - Migrations para Alembic antes de mais mudanças de schema
 - Dividir `esi_client.py` (18 métodos) em clientes de personagem/mercado/estrutura

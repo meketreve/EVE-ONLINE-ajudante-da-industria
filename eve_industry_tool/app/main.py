@@ -9,12 +9,13 @@ import asyncio
 import logging
 import os
 import secrets
+import sys
 from datetime import datetime
 from urllib.parse import urlencode, parse_qs, urlparse
 
 from nicegui import ui, app as nicegui_app
 
-from app.config import settings, APP_PORT
+from app.config import settings, APP_PORT, APP_VERSION
 from app.database.database import init_db, AsyncSessionLocal
 
 logging.basicConfig(
@@ -364,7 +365,32 @@ async def shutdown():
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+def _smoke_test() -> int:
+    """
+    EVE_TOOL_SMOKE=1 (CI): confere que o app sobe sem abrir janela nem acessar a rede.
+    Páginas e rotas já foram registradas ao importar este módulo.
+    """
+    import importlib
+    import pkgutil
+
+    import app.models as models_pkg
+    for mod in pkgutil.iter_modules(models_pkg.__path__):
+        importlib.import_module(f"app.models.{mod.name}")
+
+    import webview  # noqa: F401  janela nativa (pywebview)
+    if sys.platform == "win32":
+        import clr  # noqa: F401  pythonnet, de que o pywebview depende no Windows
+
+    asyncio.run(init_db())
+    print(f"SMOKE OK: v{APP_VERSION}, {len(list(pkgutil.iter_modules(models_pkg.__path__)))} modelos, "
+          f"banco inicializado, python {sys.version.split()[0]}", flush=True)
+    return 0
+
+
 if __name__ in {"__main__", "__mp_main__"}:
+    if os.getenv("EVE_TOOL_SMOKE") == "1":
+        sys.exit(_smoke_test())
+
     # EVE_TOOL_NATIVE=0 abre no navegador em vez de janela nativa (útil no Linux sem GTK/Qt)
     native = os.getenv("EVE_TOOL_NATIVE", "1") != "0"
     ui.run(

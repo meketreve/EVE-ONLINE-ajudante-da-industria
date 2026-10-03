@@ -4,3 +4,4 @@
 # Só para desenvolvimento: fora do zip das releases
 .claude/ export-ignore
 CLAUDE.md export-ignore
+.github/ export-ignore

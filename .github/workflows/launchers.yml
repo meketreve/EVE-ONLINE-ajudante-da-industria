@@ -1,0 +1,113 @@
+name: Launchers
+
+# Testa os launchers como o usuário final os usa: cria o ambiente, instala as dependências
+# e sobe o app em modo de teste (EVE_TOOL_SMOKE=1: importa tudo, inicializa o banco, sai
+# sem abrir janela). Também testa o autoupdate com uma release falsa local (sem rede).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EVE_TOOL_SMOKE: "1"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Iniciar.bat no clone (sem atualização)
+        shell: pwsh
+        run: |
+          $log = cmd /c Iniciar.bat 2>&1 | Out-String
+          $rc = $LASTEXITCODE
+          Write-Output $log
+          if ($rc -ne 0) { throw "Iniciar.bat saiu com código $rc" }
+          foreach ($m in 'clone git', 'SMOKE OK') {
+            if ($log -notmatch [regex]::Escape($m)) { throw "Saída sem: $m" }
+          }
+
+      - name: Release falsa v9.9.9
+        shell: pwsh
+        run: python .github/scripts/fake_release.py "$env:RUNNER_TEMP\upd"
+
+      - name: Iniciar.bat atualiza, reinicia na versão nova e sobe
+        shell: pwsh
+        run: |
+          Set-Content -NoNewline "$env:INST_DIR\eve_industry_tool\.secret_key" "chave-do-usuario"
+          $log = cmd /c "$env:INST_DIR\Iniciar.bat" 2>&1 | Out-String
+          $rc = $LASTEXITCODE
+          Write-Output $log
+          if ($rc -ne 0) { throw "Iniciar.bat saiu com código $rc" }
+          foreach ($m in 'atualizado para v9.9.9', 'LAUNCHER-NOVO-9.9.9', 'SMOKE OK') {
+            if ($log -notmatch [regex]::Escape($m)) { throw "Saída sem: $m" }
+          }
+          if ((Get-Content "$env:INST_DIR\VERSION").Trim() -ne '9.9.9') { throw 'VERSION não foi para 9.9.9' }
+          if (-not (Test-Path "$env:INST_DIR\.novidades.json")) { throw '.novidades.json não foi gravado' }
+          if ((Get-Content -Raw "$env:INST_DIR\eve_industry_tool\.secret_key") -ne 'chave-do-usuario') { throw '.secret_key do usuário foi alterado' }
+          Write-Output "OK: atualizou, reiniciou no launcher novo, dados do usuário preservados e app subiu"
+
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Checagens estáticas
+        run: |
+          shellcheck iniciar.sh
+          git ls-files '*.py' | xargs python -m py_compile
+          python - <<'EOF'
+          import re, sys
+          data = open("Iniciar.bat", "rb").read()
+          problems = []
+          if not data.isascii():
+              problems.append("Iniciar.bat tem caracteres não-ASCII")
+          lines = data.split(b"\n")[:-1]
+          if any(not l.endswith(b"\r") for l in lines):
+              problems.append("Iniciar.bat tem linhas sem CRLF")
+          for n, l in enumerate(data.decode().splitlines(), 1):
+              loose = re.sub(r'"[^"]*"', "", l).replace(">nul", "").replace("2>&1", "")
+              if "<" in loose or ">" in loose:
+                  problems.append(f"Iniciar.bat:{n}: < ou > fora de aspas")
+          if problems:
+              sys.exit("\n".join(problems))
+          print("Iniciar.bat: ASCII, CRLF, sem < > soltos")
+          EOF
+
+      - name: iniciar.sh no clone (sem atualização)
+        run: |
+          ./iniciar.sh 2>&1 | tee out.txt
+          grep -q "clone git" out.txt
+          grep -q "SMOKE OK" out.txt
+
+      - name: Release falsa v9.9.9
+        run: python .github/scripts/fake_release.py "$RUNNER_TEMP/upd"
+
+      - name: iniciar.sh atualiza, reinicia na versão nova e sobe
+        run: |
+          printf 'chave-do-usuario' > "$INST_DIR/eve_industry_tool/.secret_key"
+          "$INST_DIR/iniciar.sh" 2>&1 | tee out.txt
+          for m in "atualizado para v9.9.9" "LAUNCHER-NOVO-9.9.9" "SMOKE OK"; do
+            grep -q "$m" out.txt || { echo "Saída sem: $m"; exit 1; }
+          done
+          test "$(cat "$INST_DIR/VERSION")" = "9.9.9"
+          test -f "$INST_DIR/.novidades.json"
+          test -x "$INST_DIR/iniciar.sh"
+          test "$(cat "$INST_DIR/eve_industry_tool/.secret_key")" = "chave-do-usuario"
+          echo "OK: atualizou, reiniciou no launcher novo e app subiu"

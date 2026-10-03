@@ -33,21 +33,14 @@ por GitHub Release com aviso "O que há de novo" e versão no rodapé. Usuários
 data: 2026-10-02
 
 ```
-e796172 docs(context): formato tier 2 do /contexto e registro da v1.1.0
+87b5660 release: v1.1.1
+3ff7c8c fix: aviso de novidades também para quem atualizou da v1.0.0
+6cfbc3d docs(context): formato tier 2 do /contexto e registro da v1.1.0
 7f177a9 release: v1.1.0
 5dcc880 feat: login mantido entre aberturas e aviso "O que há de novo"
 3f87f3e docs(context): registra a release v1.0.0
 6cdca4c feat: atualização automática por GitHub Release
 a91141b docs: CLAUDE.md reescrito para a stack NiceGUI atual
-2356ed0 docs: README com notas de desenvolvimento e fim de linha
-6c44c6c chore: substitui OpenWolf por .claude/context
-a0e6923 docs: atualiza README (Linux, primeiro uso, personagens, problemas comuns)
-ed536e3 chore(first_run): loga quando os preços de Jita terminam de carregar
-e77fe05 fix(Iniciar.bat): detecção de Python e fim de linha dos scripts
-5f1433f feat: primeiro uso sem configuração para usuário leigo
-0e3339d Readme.md update and file cleanup
-de4506a Update README.md
-ca75d33 refactor: migra stack para NiceGUI, melhora cache-first e background jobs
 --- status ---
 ```
 <!-- auto:end -->
